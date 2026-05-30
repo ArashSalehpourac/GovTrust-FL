@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+.env.*
+
+# Raw and generated project artifacts
+data/raw/**/*
+!data/raw/**/
+!data/raw/**/.gitkeep
+data/processed/**/*
+!data/processed/
+!data/processed/.gitkeep
+data/splits/**/*
+!data/splits/
+!data/splits/.gitkeep
+results/**/*
+!results/**/
+!results/**/.gitkeep
+
