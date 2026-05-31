@@ -54,12 +54,12 @@ class FeatureSpec:
     output_path: Path
 
 
-def make_descriptor_vectorizer(max_features: int = 100) -> TfidfVectorizer:
+def make_descriptor_vectorizer(max_features: int = 100, min_df: int = 10) -> TfidfVectorizer:
     """Create the shared descriptor TF-IDF vectorizer."""
 
     return TfidfVectorizer(
         max_features=max_features,
-        min_df=10,
+        min_df=min_df,
         ngram_range=(1, 2),
         strip_accents="unicode",
         lowercase=True,
@@ -72,6 +72,7 @@ def fit_descriptor_vectorizer(
     frames: dict[str, pd.DataFrame],
     output_path: Path,
     max_features: int = 100,
+    min_df: int = 10,
 ) -> TfidfVectorizer:
     """Fit TF-IDF on federated clients only and persist the vectorizer."""
 
@@ -82,7 +83,7 @@ def fit_descriptor_vectorizer(
     if not texts:
         raise ValueError("No federated training-city frames supplied for TF-IDF fitting.")
 
-    vectorizer = make_descriptor_vectorizer(max_features=max_features)
+    vectorizer = make_descriptor_vectorizer(max_features=max_features, min_df=min_df)
     vectorizer.fit(pd.concat(texts, ignore_index=True))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(vectorizer, output_path)
@@ -226,4 +227,3 @@ def _descriptor_text(frame: pd.DataFrame) -> pd.Series:
 def _safe_name(name: str) -> str:
     safe = re.sub(r"[^0-9a-zA-Z]+", "_", name.strip().lower()).strip("_")
     return safe or "empty"
-

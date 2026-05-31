@@ -17,11 +17,11 @@ ALL_CITIES = (*FEDERATED_CLIENTS, EXTERNAL_VALIDATION_CITY)
 
 RANDOM_STATE = 42
 DELAY_THRESHOLD_DAYS = 30
-TARGET_COLUMN = "delayed_resolution"
+TARGET_COLUMN = "delayed"
 
-OPENED_AT_COLUMN = "opened_at"
-CLOSED_AT_COLUMN = "closed_at"
-RESOLUTION_DAYS_COLUMN = "resolution_days"
+OPENED_AT_COLUMN = "created_date"
+CLOSED_AT_COLUMN = "closed_date"
+RESOLUTION_DAYS_COLUMN = "resolution_hours"
 
 
 @dataclass(frozen=True)
@@ -60,4 +60,3 @@ def ensure_project_dirs() -> None:
         RESULTS_DIR / "models",
     ):
         path.mkdir(parents=True, exist_ok=True)
-

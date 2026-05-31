@@ -13,9 +13,14 @@ from .config import CLOSED_AT_COLUMN, OPENED_AT_COLUMN, RESOLUTION_DAYS_COLUMN, 
 
 DEFAULT_DROP_COLUMNS = {
     TARGET_COLUMN,
+    "request_id",
+    "created_date",
     OPENED_AT_COLUMN,
     CLOSED_AT_COLUMN,
     RESOLUTION_DAYS_COLUMN,
+    "delay_threshold_hours",
+    "service_routing_target",
+    "status",
     "source_file",
 }
 

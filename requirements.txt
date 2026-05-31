@@ -25,3 +25,5 @@ joblib
 jupyter
 notebook
 ipykernel
+pyyaml
+pytest

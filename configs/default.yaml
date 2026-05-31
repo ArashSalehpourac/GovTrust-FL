@@ -1,0 +1,93 @@
+project:
+  name: GovTrust-FL
+  random_seed: 42
+
+cities:
+  training:
+    - nyc
+    - chicago
+    - boston
+  external_validation: los_angeles
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  splits_dir: data/splits
+  min_category_samples: 1
+  test_size: 0.15
+  validation_size: 0.15
+
+schema:
+  required_columns:
+    - request_id
+    - created_date
+    - closed_date
+    - status
+    - category
+    - descriptor
+    - agency
+    - latitude
+    - longitude
+    - area
+    - city
+
+target:
+  column: delayed
+  resolution_hours_column: resolution_hours
+  delay_threshold: city_category_q3
+  service_routing_target: service_routing_target
+
+model:
+  type: logistic_regression
+  random_state: 42
+
+fl:
+  clients:
+    - nyc
+    - chicago
+    - boston
+  rounds: 3
+  local_epochs: 1
+  batch_size: 64
+  learning_rate: 0.001
+  hidden_dim: 32
+  fedprox_mu: 0.01
+
+dp:
+  enabled: false
+  noise_multiplier: 1.0
+  max_grad_norm: 1.0
+  delta: 0.00001
+
+secure_aggregation:
+  enabled: false
+  overhead_factor: 0.25
+
+calibration:
+  n_bins: 10
+
+fairness:
+  group_columns:
+    - city
+    - category
+    - area
+
+xai:
+  sample_size: 100
+  top_k: 10
+
+tai_score:
+  weights:
+    predictive_utility: 0.25
+    privacy_protection: 0.20
+    explanation_stability: 0.20
+    fairness: 0.15
+    efficiency: 0.10
+    calibration: 0.10
+
+outputs:
+  tables_dir: results/tables
+  figures_dir: results/figures
+  logs_dir: results/logs
+  models_dir: results/models
+  transparency_record: results/algorithmic_transparency_record.md
