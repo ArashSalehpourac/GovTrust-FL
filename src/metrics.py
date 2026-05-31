@@ -26,6 +26,8 @@ def binary_classification_metrics(y_true, y_score, threshold: float = 0.5) -> di
         "precision": precision_score(y_true, y_pred, zero_division=0),
         "recall": recall_score(y_true, y_pred, zero_division=0),
         "f1": f1_score(y_true, y_pred, zero_division=0),
+        "macro_f1": f1_score(y_true, y_pred, average="macro", zero_division=0),
+        "weighted_f1": f1_score(y_true, y_pred, average="weighted", zero_division=0),
         "brier": brier_score_loss(y_true, y_score),
     }
 
@@ -48,4 +50,3 @@ def predict_scores(model, features) -> np.ndarray:
         values = model.decision_function(features)
         return 1 / (1 + np.exp(-values))
     return model.predict(features)
-
