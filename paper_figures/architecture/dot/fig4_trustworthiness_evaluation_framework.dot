@@ -1,0 +1,160 @@
+digraph GovTrustFL_Trustworthiness {
+    graph [
+        rankdir=TB,
+        compound=true,
+        newrank=true,
+        splines=ortho,
+        bgcolor="white",
+        margin=0.15,
+        pad=0.20,
+        nodesep=0.45,
+        ranksep=0.55,
+        fontname="Helvetica",
+        fontsize=18,
+        labelloc="t",
+        label=<
+            <B>Trustworthiness Evaluation Framework</B>
+        >
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F7F7F7",
+        color="#333333",
+        penwidth=1.3,
+        fontname="Helvetica",
+        fontsize=12,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        color="#333333",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    MODELS [
+        label=<
+            <B>Model Configurations</B><BR/>
+            Centralized, local-only, FedAvg, FedProx, DP, SecAgg simulation
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=4.25
+    ];
+
+    HUB [
+        label=<
+            <B>Multi-Objective Evidence</B><BR/>
+            Six trustworthiness dimensions
+        >,
+        width=3.10
+    ];
+
+    UTILITY [
+        label=<
+            <B>Predictive Utility</B><BR/>
+            AUROC, AUPRC, F1<BR/>
+            balanced accuracy, Brier score
+        >,
+        width=2.70
+    ];
+
+    PRIVACY [
+        label=<
+            <B>Privacy</B><BR/>
+            Membership-inference AUC<BR/>
+            attack advantage
+        >,
+        style="rounded,filled,dashed",
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=2.65
+    ];
+
+    XAI [
+        label=<
+            <B>Explainability</B><BR/>
+            SHAP attribution<BR/>
+            PEDI drift
+        >,
+        width=2.55
+    ];
+
+    FAIR [
+        label=<
+            <B>Fairness</B><BR/>
+            City, area, and<BR/>
+            service-category gaps
+        >,
+        width=2.65
+    ];
+
+    CAL [
+        label=<
+            <B>Calibration</B><BR/>
+            ECE and<BR/>
+            reliability curve
+        >,
+        width=2.45
+    ];
+
+    EFF [
+        label=<
+            <B>Efficiency</B><BR/>
+            Runtime, memory,<BR/>
+            communication cost
+        >,
+        width=2.65
+    ];
+
+    NORM [
+        label=<
+            <B>Component Normalization</B><BR/>
+            Convert evidence to comparable 0-1 scores
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=3.55
+    ];
+
+    TAI [
+        label=<
+            <B>TAI-Score</B><BR/>
+            Weighted trustworthiness ranking
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.1,
+        width=3.00
+    ];
+
+    ATR [
+        label=<
+            <B>Transparency Record</B><BR/>
+            Evidence, caveats, deployment risks
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.1,
+        width=3.15
+    ];
+
+    MODELS -> HUB;
+    HUB -> UTILITY;
+    HUB -> PRIVACY;
+
+    UTILITY -> XAI;
+    XAI -> CAL;
+
+    PRIVACY -> FAIR;
+    FAIR -> EFF;
+
+    CAL -> NORM;
+    EFF -> NORM;
+    NORM -> TAI -> ATR;
+
+    { rank=same; UTILITY; PRIVACY; }
+    { rank=same; XAI; FAIR; }
+    { rank=same; CAL; EFF; }
+}

@@ -1,0 +1,122 @@
+digraph GovTrustFL_Overall {
+    graph [
+        rankdir=TB,
+        compound=true,
+        newrank=true,
+        splines=ortho,
+        bgcolor="white",
+        margin=0.15,
+        pad=0.20,
+        nodesep=0.45,
+        ranksep=0.58,
+        fontname="Helvetica",
+        fontsize=18,
+        labelloc="t",
+        label=<
+            <B>Overall GovTrust-FL Architecture</B>
+        >
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F7F7F7",
+        color="#333333",
+        penwidth=1.3,
+        fontname="Helvetica",
+        fontsize=12,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        color="#333333",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    DATA [
+        label=<
+            <B>Official Municipal Open Data</B><BR/>
+            NYC, Chicago, Boston, Los Angeles
+        >,
+        width=3.30
+    ];
+
+    HARM [
+        label=<
+            <B>Schema Harmonization</B><BR/>
+            Shared request fields and city-category delay labels
+        >,
+        width=3.75
+    ];
+
+    FEAT [
+        label=<
+            <B>Creation-Time Feature Engineering</B><BR/>
+            Time, location, workload, and descriptor text
+        >,
+        width=3.60
+    ];
+
+    TRAIN [
+        label=<
+            <B>Training Cities Only</B><BR/>
+            NYC + Chicago + Boston
+        >,
+        width=2.80
+    ];
+
+    LA [
+        label=<
+            <B>Held-Out External City</B><BR/>
+            Los Angeles excluded from training and selection
+        >,
+        style="rounded,filled,dashed",
+        fillcolor="#FFFFFF",
+        penwidth=1.7,
+        width=3.35
+    ];
+
+    LEARN [
+        label=<
+            <B>Learning Configurations</B><BR/>
+            Local-only, centralized, FedAvg, FedProx<BR/>
+            FedAvg+DP, FedProx+DP, SecAgg simulation
+        >,
+        width=3.85
+    ];
+
+    EVAL [
+        label=<
+            <B>Trustworthiness Evaluation</B><BR/>
+            Utility, privacy leakage, PEDI/XAI, fairness<BR/>
+            calibration, runtime, memory, communication
+        >,
+        width=4.05
+    ];
+
+    OUT [
+        label=<
+            <B>Governance Outputs</B><BR/>
+            TAI-Score, transparency record, deployment evidence
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.2,
+        width=3.90
+    ];
+
+    DATA -> HARM -> FEAT -> TRAIN -> LEARN -> EVAL -> OUT;
+
+    FEAT -> LA [
+        style=dashed,
+        label=<external validation branch>,
+        minlen=2
+    ];
+    LA -> EVAL [
+        style=dashed,
+        label=<final test only>
+    ];
+
+    { rank=same; TRAIN; LA; }
+}

@@ -1,0 +1,127 @@
+digraph GovTrustFL_PEDI {
+    graph [
+        rankdir=TB,
+        compound=true,
+        newrank=true,
+        splines=ortho,
+        bgcolor="white",
+        margin=0.15,
+        pad=0.20,
+        nodesep=0.48,
+        ranksep=0.58,
+        fontname="Helvetica",
+        fontsize=18,
+        labelloc="t",
+        label=<
+            <B>Privacy-Explanation Drift Index Workflow</B>
+        >
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F7F7F7",
+        color="#333333",
+        penwidth=1.3,
+        fontname="Helvetica",
+        fontsize=12,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        color="#333333",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    REF_MODEL [
+        label=<
+            <B>Reference Model</B><BR/>
+            Non-private baseline
+        >,
+        width=2.60
+    ];
+
+    PRIV_MODEL [
+        label=<
+            <B>Privacy-Preserving Model</B><BR/>
+            DP, SecAgg, or federated variant
+        >,
+        style="rounded,filled,dashed",
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=3.00
+    ];
+
+    REF_SHAP [
+        label=<
+            <B>SHAP Explanations</B><BR/>
+            Reference attribution values
+        >,
+        width=2.75
+    ];
+
+    PRIV_SHAP [
+        label=<
+            <B>SHAP Explanations</B><BR/>
+            Private-model attribution values
+        >,
+        width=2.95
+    ];
+
+    REF_VEC [
+        label=<
+            <B>Reference Vector</B><BR/>
+            Mean absolute feature importance
+        >,
+        width=3.05
+    ];
+
+    PRIV_VEC [
+        label=<
+            <B>Private Vector</B><BR/>
+            Mean absolute feature importance
+        >,
+        width=3.05
+    ];
+
+    COMPARE [
+        label=<
+            <B>Vector Comparison</B><BR/>
+            Spearman rank correlation + top-k overlap
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=3.65
+    ];
+
+    PEDI [
+        label=<
+            <B>PEDI</B><BR/>
+            1 - Spearman rank correlation
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.2,
+        width=3.00
+    ];
+
+    INTERP [
+        label=<
+            <B>Interpretation</B><BR/>
+            Low PEDI: stable explanations<BR/>
+            High PEDI: strong privacy-induced drift
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.2,
+        width=3.50
+    ];
+
+    REF_MODEL -> REF_SHAP -> REF_VEC -> COMPARE;
+    PRIV_MODEL -> PRIV_SHAP -> PRIV_VEC -> COMPARE;
+    COMPARE -> PEDI -> INTERP;
+
+    { rank=same; REF_MODEL; PRIV_MODEL; }
+    { rank=same; REF_SHAP; PRIV_SHAP; }
+    { rank=same; REF_VEC; PRIV_VEC; }
+}

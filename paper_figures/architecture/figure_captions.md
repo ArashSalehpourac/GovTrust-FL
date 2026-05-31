@@ -1,0 +1,11 @@
+# Architecture Figure Captions
+
+**Figure 1. Overall architecture of GovTrust-FL.** The framework integrates official multi-city municipal service-request data, schema harmonization, city-category delayed-resolution labeling, creation-time feature engineering, privacy-aware learning configurations, multidimensional trustworthiness evaluation, and governance-oriented reporting. NYC, Chicago, and Boston are used for model development, while Los Angeles is retained as a held-out external validation city and excluded from training and model selection.
+
+**Figure 2. External validation protocol.** NYC, Chicago, and Boston are split into internal train, validation, and test subsets for feature processing, model development, and model selection. Los Angeles is held out completely during these stages and is used only after final configurations have been selected, providing a direct test of cross-city generalization to an unseen municipal environment.
+
+**Figure 3. Federated learning workflow.** The global server broadcasts the current model to city clients, each client trains locally on its own municipal records, and only model updates are returned for aggregation. The workflow supports FedAvg and FedProx aggregation, optional update-level differential privacy through clipping and Gaussian noise, and a secure-aggregation simulation layer for communication-overhead accounting while raw records remain local.
+
+**Figure 4. Trustworthiness evaluation framework.** GovTrust-FL evaluates each model configuration across predictive utility, privacy leakage, explainability stability, fairness, calibration, and efficiency. These dimensions are consolidated into the TAI-Score and an algorithmic transparency record, shifting model selection from accuracy-only comparison toward deployment-aware public-sector evidence.
+
+**Figure 5. Privacy-Explanation Drift Index workflow.** PEDI compares feature-importance explanations from a reference model and a privacy-preserving model. SHAP attribution vectors are summarized, compared using Spearman rank correlation and top-k overlap, and transformed into PEDI as one minus the Spearman correlation. Low PEDI indicates stable explanations, whereas high PEDI indicates stronger privacy-induced explanation drift.

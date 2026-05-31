@@ -1,0 +1,129 @@
+digraph GovTrustFL_ExternalValidation {
+    graph [
+        rankdir=TB,
+        compound=true,
+        newrank=true,
+        splines=ortho,
+        bgcolor="white",
+        margin=0.15,
+        pad=0.20,
+        nodesep=0.45,
+        ranksep=0.56,
+        fontname="Helvetica",
+        fontsize=18,
+        labelloc="t",
+        label=<
+            <B>External Validation Protocol</B>
+        >
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F7F7F7",
+        color="#333333",
+        penwidth=1.3,
+        fontname="Helvetica",
+        fontsize=12,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        color="#333333",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    TRAIN_CITIES [
+        label=<
+            <B>Model-Development Cities</B><BR/>
+            NYC, Chicago, Boston
+        >,
+        width=3.05
+    ];
+
+    SPLITS [
+        label=<
+            <B>Internal Temporal Splits</B><BR/>
+            Train, validation, and test subsets
+        >,
+        width=3.25
+    ];
+
+    DEV [
+        label=<
+            <B>Model Development</B><BR/>
+            Feature processing, training, and tuning
+        >,
+        width=3.25
+    ];
+
+    SELECT [
+        label=<
+            <B>Model Selection</B><BR/>
+            Based only on training-city validation evidence
+        >,
+        width=3.55
+    ];
+
+    FINAL [
+        label=<
+            <B>Final Selected Configurations</B><BR/>
+            Centralized, local-only, and federated variants
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=3.65
+    ];
+
+    LA [
+        label=<
+            <B>Los Angeles</B><BR/>
+            Held-out external city
+        >,
+        style="rounded,filled,dashed",
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=2.70
+    ];
+
+    RULE [
+        label=<
+            <B>Protocol Rule</B><BR/>
+            Los Angeles is never used during<BR/>
+            training or model selection
+        >,
+        style="rounded,filled,dashed",
+        fillcolor="#FFFFFF",
+        penwidth=1.8,
+        width=3.20
+    ];
+
+    EXT [
+        label=<
+            <B>External Evaluation</B><BR/>
+            Test final models on Los Angeles only after training
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.1,
+        width=3.70
+    ];
+
+    EVIDENCE [
+        label=<
+            <B>Cross-City Generalization Evidence</B><BR/>
+            Transfer to an unseen municipal environment
+        >,
+        fillcolor="#FFFFFF",
+        penwidth=2.1,
+        width=3.50
+    ];
+
+    TRAIN_CITIES -> SPLITS -> DEV -> SELECT -> FINAL -> EXT -> EVIDENCE;
+    LA -> RULE [style=dashed, arrowhead=none];
+    RULE -> EXT [style=dashed, label=<external test set>];
+
+    { rank=same; FINAL; LA; }
+    { rank=same; EXT; RULE; }
+}

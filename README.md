@@ -116,6 +116,16 @@ python scripts/make_transparency_record.py
 
 Fairness is framed as geographic, area, and service-category fairness. The repository does not make demographic fairness claims unless demographic attributes are added and governed separately.
 
+## Architecture Figures
+
+Editable DOT sources are stored in `paper_figures/architecture/dot/`. Rendered SVG, PDF, and PNG versions can be regenerated with:
+
+```powershell
+python scripts/render_architecture_figures.py
+```
+
+These figures are manuscript assets and are separate from experimental outputs under `results/`.
+
 ## Tests
 
 ```powershell
