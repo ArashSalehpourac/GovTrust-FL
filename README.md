@@ -1,27 +1,125 @@
 # GovTrust-FL
 
-Federated learning starter project for delayed-resolution prediction across city service-request data.
+GovTrust-FL is a reproducible research codebase for trustworthy federated learning in multi-city municipal service-request triage. The core task is delayed-resolution risk prediction using NYC, Chicago, and Boston as federated clients, with Los Angeles held out for external validation.
 
-The initial design treats NYC, Chicago, and Boston as federated clients, with Los Angeles held out for external validation. The main target is delayed resolution. Evaluation is planned across predictive performance, privacy, fairness, calibration, XAI stability, runtime, memory, and communication cost.
+This repository is paper-aligned, but it does not include real municipal datasets. Real 311/MyLA311 files must be downloaded by the user from official open-data portals and placed under `data/raw/<city>/`. Synthetic data are provided only for smoke tests and CI.
 
-## Project Layout
+## Repository Structure
 
-- `data/raw/`: original city downloads.
-- `data/processed/`: harmonized city-level datasets.
-- `data/splits/`: train, validation, and test split files.
-- `notebooks/`: step-by-step experiment notebooks.
-- `src/`: reusable pipeline code.
-- `results/`: tables, figures, logs, and serialized models.
+- `configs/default.yaml`: experiment settings for cities, targets, models, FL, DP, fairness, calibration, XAI, and outputs.
+- `src/`: reusable data, model, federated learning, privacy, XAI, fairness, calibration, and scorecard modules.
+- `scripts/`: command-line entry points for data prep, training, privacy attack, XAI/PEDI, trustworthiness evaluation, and transparency records.
+- `tests/`: synthetic-data unit tests for preprocessing, metrics, PEDI, and TAI-Score.
+- `data/`: ignored local raw, processed, and split datasets.
+- `results/`: ignored local tables, figures, logs, and trained models.
 
-## Quick Start
+## Installation
 
 ```powershell
-cd GovTrust-FL
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Start with `notebooks/01_data_download.ipynb`, then move through schema harmonization, preprocessing, baselines, federated learning, privacy, XAI, fairness, calibration, and final scorecards.
+Graphviz system binaries are needed only for rendering DOT figures:
 
+```powershell
+pip install graphviz
+```
+
+## Synthetic Smoke Workflow
+
+Use synthetic data when real city exports are unavailable:
+
+```powershell
+python scripts/make_synthetic_data.py --rows-per-city 100
+python scripts/prepare_data.py
+python scripts/run_baselines.py
+python scripts/run_federated.py --algorithm fedavg
+python scripts/run_privacy_attack.py
+python scripts/run_xai_pedi.py
+python scripts/run_trustworthiness_eval.py
+python scripts/make_transparency_record.py
+```
+
+Key outputs:
+
+- `results/tables/baseline_metrics.csv`
+- `results/tables/federated_metrics.csv`
+- `results/tables/privacy_attack_metrics.csv`
+- `results/tables/pedi_metrics.csv`
+- `results/tables/fairness_metrics.csv`
+- `results/tables/calibration_metrics.csv`
+- `results/tables/tai_scorecard.csv`
+- `results/algorithmic_transparency_record.md`
+
+## Real Data Workflow
+
+Place canonical or harmonized raw files under:
+
+```text
+data/raw/nyc/
+data/raw/chicago/
+data/raw/boston/
+data/raw/los_angeles/
+```
+
+The required shared schema is:
+
+```text
+request_id, created_date, closed_date, status, category, descriptor,
+agency, latitude, longitude, area, city
+```
+
+Then run:
+
+```powershell
+python scripts/prepare_data.py --config configs/default.yaml
+```
+
+Los Angeles is written only to `data/splits/external/los_angeles_external_test.parquet`. It must never be included in training or model selection.
+
+## Federated Learning
+
+FedAvg:
+
+```powershell
+python scripts/run_federated.py --algorithm fedavg
+```
+
+FedProx:
+
+```powershell
+python scripts/run_federated.py --algorithm fedprox
+```
+
+Optional modes:
+
+```powershell
+python scripts/run_federated.py --algorithm fedavg --secure-aggregation
+python scripts/run_federated.py --algorithm fedavg --dp
+```
+
+Secure aggregation is a simulation-layer overhead hook, not a production cryptographic protocol. DP uses Opacus when enabled and writes accounting metadata when available.
+
+## Trustworthiness Outputs
+
+After models are trained, run:
+
+```powershell
+python scripts/run_privacy_attack.py
+python scripts/run_xai_pedi.py
+python scripts/run_trustworthiness_eval.py
+python scripts/make_transparency_record.py
+```
+
+Fairness is framed as geographic, area, and service-category fairness. The repository does not make demographic fairness claims unless demographic attributes are added and governed separately.
+
+## Tests
+
+```powershell
+pytest -q
+```
+
+The CI workflow installs lightweight test dependencies and runs unit tests on synthetic inputs only. Large generated datasets, trained models, and result artifacts are ignored by git.
