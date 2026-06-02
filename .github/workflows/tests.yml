@@ -22,7 +22,7 @@ jobs:
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "numpy<3" "pandas<4" "scipy<2" "scikit-learn<2" pyyaml pytest pyarrow
+          python -m pip install "numpy<3" "pandas<4" "scipy<2" "scikit-learn<2" pyyaml pytest pyarrow torch opacus
 
       - name: Run unit tests
         run: python -m pytest -q
