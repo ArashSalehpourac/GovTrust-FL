@@ -1,8 +1,10 @@
-"""Fairness diagnostics for subgroup evaluation."""
+"""Subgroup metric utilities."""
+
+from __future__ import annotations
 
 import pandas as pd
 
-from .metrics import binary_classification_metrics
+from src.metrics import binary_classification_metrics
 
 
 def subgroup_metrics(
@@ -39,4 +41,3 @@ def max_group_gap(metrics_frame: pd.DataFrame, metric: str) -> float:
     if values.empty:
         return float("nan")
     return float(values.max() - values.min())
-

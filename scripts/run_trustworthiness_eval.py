@@ -159,7 +159,10 @@ def main() -> int:
     fairness.to_csv(tables_dir / "step16_fairness_summary.csv", index=False)
     fairness.to_csv(tables_dir / "fairness_metrics.csv", index=False)
     resources.to_csv(tables_dir / "step18_resource_communication.csv", index=False)
+    resources.to_csv(tables_dir / "efficiency_results.csv", index=False)
     plot_reliability_curve(reliability, figures_dir / "reliability_curve.png")
+    plot_reliability_curve(reliability, figures_dir / "reliability_diagram_overall.png")
+    plot_fairness_heatmap(fairness, figures_dir / "fairness_heatmap.png")
 
     tai_input = build_tai_input(
         performance,
@@ -183,6 +186,8 @@ def main() -> int:
     )
     tai.to_csv(tables_dir / "step19_tai_scorecard.csv", index=False)
     tai.to_csv(tables_dir / "tai_scorecard.csv", index=False)
+    tai.to_csv(tables_dir / "tai_score_ranking.csv", index=False)
+    plot_tai_radar_chart(tai, figures_dir / "tai_score_radar_chart.png")
 
     log = {
         "models_evaluated": [record.label for record in models],
@@ -397,6 +402,50 @@ def plot_reliability_curve(reliability: pd.DataFrame, output_path: Path) -> None
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.legend(frameon=False, fontsize=7)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
+def plot_fairness_heatmap(fairness: pd.DataFrame, output_path: Path) -> None:
+    """Save a compact fairness-gap heatmap."""
+
+    if fairness.empty or "macro_f1_gap" not in fairness.columns:
+        return
+    pivot = fairness.pivot_table(index="model", columns="group_column", values="macro_f1_gap", aggfunc="mean")
+    fig, ax = plt.subplots(figsize=(max(4.8, 0.8 * len(pivot.columns) + 2), max(3.2, 0.35 * len(pivot) + 1.2)))
+    image = ax.imshow(pivot.fillna(0).to_numpy(), aspect="auto", cmap="Greys")
+    ax.set_xticks(range(len(pivot.columns)))
+    ax.set_xticklabels(pivot.columns, rotation=30, ha="right")
+    ax.set_yticks(range(len(pivot.index)))
+    ax.set_yticklabels(pivot.index)
+    ax.set_title("Fairness gap summary")
+    fig.colorbar(image, ax=ax, label="Macro-F1 gap")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
+def plot_tai_radar_chart(tai: pd.DataFrame, output_path: Path) -> None:
+    """Save a radar chart for the top TAI-Score model."""
+
+    component_columns = ["Performance", "Privacy", "XAI stability", "Fairness", "Efficiency", "Calibration"]
+    if tai.empty or any(column not in tai.columns for column in component_columns):
+        return
+    row = tai.sort_values("TAI-Score", ascending=False).iloc[0]
+    values = [float(row[column]) for column in component_columns]
+    values += values[:1]
+    angles = np.linspace(0, 2 * np.pi, len(component_columns), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig = plt.figure(figsize=(4.8, 4.8))
+    ax = fig.add_subplot(111, polar=True)
+    ax.plot(angles, values, color="#222222", linewidth=1.5)
+    ax.fill(angles, values, color="#999999", alpha=0.25)
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(component_columns)
+    ax.set_ylim(0, 1)
+    ax.set_title(f"TAI-Score profile: {row['model']}")
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
     plt.close(fig)

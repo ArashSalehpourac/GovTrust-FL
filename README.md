@@ -4,11 +4,20 @@ GovTrust-FL is a reproducible research codebase for trustworthy federated learni
 
 This repository is paper-aligned, but it does not include real municipal datasets. Real 311/MyLA311 files must be downloaded by the user from official open-data portals and placed under `data/raw/<city>/`. Synthetic data are provided only for smoke tests and CI.
 
+The manuscript label definition is city-category specific:
+
+```text
+delayed = 1 if resolution_hours > Q3(resolution_hours | city, category) else 0
+```
+
+Do not use Los Angeles for training, validation, preprocessing fit, calibration fitting, model selection, threshold tuning, or score normalization.
+
 ## Repository Structure
 
 - `configs/default.yaml`: experiment settings for cities, targets, models, FL, DP, fairness, calibration, XAI, and outputs.
 - `src/`: reusable data, model, federated learning, privacy, XAI, fairness, calibration, and scorecard modules.
 - `scripts/`: command-line entry points for data prep, training, privacy attack, XAI/PEDI, trustworthiness evaluation, and transparency records.
+- `docs/`: schema, reproducibility, experimental protocol, model-card, and transparency-record documentation.
 - `tests/`: synthetic-data unit tests for preprocessing, metrics, PEDI, and TAI-Score.
 - `data/`: ignored local raw, processed, and split datasets.
 - `results/`: ignored local tables, figures, logs, and trained models.
@@ -43,6 +52,25 @@ python scripts/run_trustworthiness_eval.py
 python scripts/make_transparency_record.py
 ```
 
+The numbered manuscript workflow wrappers are also available:
+
+```powershell
+python scripts/01_download_data.py
+python scripts/02_harmonize_schema.py
+python scripts/03_clean_data.py
+python scripts/04_create_labels.py
+python scripts/05_engineer_features.py
+python scripts/06_create_splits.py
+python scripts/07_train_baselines.py
+python scripts/08_train_federated.py
+python scripts/09_run_privacy_evaluation.py
+python scripts/10_run_xai_pedi.py
+python scripts/11_run_fairness_calibration.py
+python scripts/12_compute_efficiency.py
+python scripts/13_compute_tai_score.py
+python scripts/14_generate_transparency_record.py
+```
+
 Key outputs:
 
 - `results/tables/baseline_metrics.csv`
@@ -51,8 +79,12 @@ Key outputs:
 - `results/tables/pedi_metrics.csv`
 - `results/tables/fairness_metrics.csv`
 - `results/tables/calibration_metrics.csv`
+- `results/tables/efficiency_results.csv`
 - `results/tables/tai_scorecard.csv`
+- `results/tables/tai_score_ranking.csv`
 - `results/algorithmic_transparency_record.md`
+- `results/governance/algorithmic_transparency_record.json`
+- `results/governance/algorithmic_transparency_record.md`
 
 ## Real Data Workflow
 
@@ -115,6 +147,15 @@ python scripts/make_transparency_record.py
 ```
 
 Fairness is framed as geographic, area, and service-category fairness. The repository does not make demographic fairness claims unless demographic attributes are added and governed separately.
+
+## Reproducibility Notes
+
+- Configuration lives in `configs/default.yaml`.
+- The canonical schema is documented in `docs/DATA_SCHEMA.md`.
+- The full experimental protocol is documented in `docs/EXPERIMENTAL_PROTOCOL.md`.
+- Reproduction instructions are documented in `docs/REPRODUCIBILITY.md`.
+- Raw data and generated `results/` artifacts are intentionally ignored by git.
+- Manuscript architecture figures are committed under `paper_figures/`.
 
 ## Architecture Figures
 

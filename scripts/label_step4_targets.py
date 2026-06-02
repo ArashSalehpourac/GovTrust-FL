@@ -16,7 +16,9 @@ from src.labeling import LABELED_SCHEMA, LabelingSpec, label_file  # noqa: E402
 
 
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+RESULTS_TABLES_DIR = PROJECT_ROOT / "results" / "tables"
 THRESHOLDS_PATH = PROCESSED_DIR / "delay_thresholds_q3_by_city_category.parquet"
+THRESHOLDS_CSV_PATH = RESULTS_TABLES_DIR / "delay_thresholds_by_city_category.csv"
 MANIFEST_PATH = PROCESSED_DIR / "labeling_manifest_step4.json"
 
 
@@ -66,6 +68,8 @@ def main() -> int:
     all_thresholds = pd.concat(threshold_frames, ignore_index=True)
     all_thresholds = all_thresholds[["city", "category", "delay_threshold_hours"]]
     all_thresholds.to_parquet(THRESHOLDS_PATH, index=False)
+    THRESHOLDS_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
+    all_thresholds.to_csv(THRESHOLDS_CSV_PATH, index=False)
 
     manifest = {
         "labeled_schema": LABELED_SCHEMA,
@@ -73,6 +77,7 @@ def main() -> int:
             "name": "delayed",
             "rule": "For each city and category, threshold = Q3(resolution_hours | city, category). delayed = 1 if resolution_hours > threshold else 0.",
             "threshold_path": str(THRESHOLDS_PATH),
+            "threshold_csv_path": str(THRESHOLDS_CSV_PATH),
         },
         "secondary_target": {
             "name": "service_routing_target",
@@ -82,10 +87,10 @@ def main() -> int:
     }
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Wrote thresholds: {THRESHOLDS_PATH}", flush=True)
+    print(f"Wrote threshold CSV: {THRESHOLDS_CSV_PATH}", flush=True)
     print(f"Wrote manifest: {MANIFEST_PATH}", flush=True)
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

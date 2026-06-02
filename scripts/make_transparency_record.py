@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import EXTERNAL_VALIDATION_CITY, FEDERATED_CLIENTS, ensure_project_dirs  # noqa: E402
 from src.config_loader import load_config, resolve_path  # noqa: E402
+from src.governance import transparency_record_payload  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,7 +33,9 @@ def main() -> int:
 
     tables_dir = resolve_path(config, "outputs.tables_dir")
     output_path = args.output or resolve_path(config, "outputs.transparency_record")
+    governance_dir = output_path.parent / "governance" if output_path.parent.name != "governance" else output_path.parent
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    governance_dir.mkdir(parents=True, exist_ok=True)
 
     tai = read_table(tables_dir / "step19_tai_scorecard.csv")
     performance = read_table(tables_dir / "trustworthiness_model_performance.csv")
@@ -40,8 +44,26 @@ def main() -> int:
     privacy = read_table(tables_dir / "privacy_attack_metrics.csv")
     pedi = read_table(tables_dir / "pedi_metrics.csv")
 
-    output_path.write_text(
-        build_record(config, tai, performance, calibration, fairness, privacy, pedi),
+    markdown = build_record(config, tai, performance, calibration, fairness, privacy, pedi)
+    output_path.write_text(markdown, encoding="utf-8")
+    (governance_dir / "algorithmic_transparency_record.md").write_text(markdown, encoding="utf-8")
+    payload = transparency_record_payload(
+        data_sources=["NYC 311", "Chicago 311", "Boston 311", "Los Angeles MyLA311"],
+        target_variable="delayed",
+        excluded_variables=["closed_date", "resolution_hours", "delay_threshold_hours", "post-resolution status"],
+        privacy_protections=["secure aggregation simulation", "Opacus DP when enabled"],
+        explainability_methods=["SHAP", "permutation importance", "PEDI"],
+        known_limitations=[
+            "MVP smoke runs may use synthetic data.",
+            "Secure aggregation is simulated unless cryptographic infrastructure is integrated.",
+        ],
+        performance_summary=table_records(tai),
+        privacy_summary=table_records(privacy),
+        calibration_summary=table_records(calibration),
+        resource_summary=read_table_records(tables_dir / "efficiency_results.csv"),
+    )
+    (governance_dir / "algorithmic_transparency_record.json").write_text(
+        json.dumps(payload, indent=2),
         encoding="utf-8",
     )
     print(f"Wrote transparency record: {output_path}")
@@ -154,6 +176,20 @@ def read_table(path: Path) -> pd.DataFrame | None:
     if not path.exists():
         return None
     return pd.read_csv(path)
+
+
+def table_records(df: pd.DataFrame | None) -> list[dict[str, object]]:
+    """Return a compact JSON-safe record list."""
+
+    if df is None:
+        return []
+    return df.head(20).where(pd.notna(df), None).to_dict(orient="records")
+
+
+def read_table_records(path: Path) -> list[dict[str, object]]:
+    """Read a table and return compact JSON-safe records if it exists."""
+
+    return table_records(read_table(path))
 
 
 def table_snapshot(df: pd.DataFrame | None, title: str, columns: list[str]) -> str:

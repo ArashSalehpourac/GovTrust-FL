@@ -1,14 +1,12 @@
 """Calibration metrics and wrappers."""
 
+from __future__ import annotations
+
 import numpy as np
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
 
 
-def expected_calibration_error(
-    y_true,
-    y_score,
-    n_bins: int = 10,
-) -> float:
+def expected_calibration_error(y_true, y_score, n_bins: int = 10) -> float:
     """Compute binary expected calibration error."""
 
     y_true = np.asarray(y_true)
@@ -42,4 +40,3 @@ def make_calibrated_classifier(estimator, method: str = "isotonic", cv: int = 3)
     """Wrap an estimator with sklearn probability calibration."""
 
     return CalibratedClassifierCV(estimator=estimator, method=method, cv=cv)
-

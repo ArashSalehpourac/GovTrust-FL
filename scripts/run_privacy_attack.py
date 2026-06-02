@@ -65,7 +65,9 @@ def main() -> int:
     }
     tables_dir.mkdir(parents=True, exist_ok=True)
     output_path = tables_dir / "privacy_attack_metrics.csv"
-    pd.DataFrame([row]).to_csv(output_path, index=False)
+    output = pd.DataFrame([row])
+    output.to_csv(output_path, index=False)
+    output.to_csv(tables_dir / "membership_inference_results.csv", index=False)
     print(f"Wrote privacy attack metrics: {output_path}")
     return 0
 

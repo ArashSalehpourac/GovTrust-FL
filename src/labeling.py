@@ -36,10 +36,16 @@ class LabelingSpec:
     output_path: Path
 
 
-def add_delayed_resolution_label(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def add_delayed_resolution_label(
+    frame: pd.DataFrame,
+    service_routing_source: str = "agency",
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Add city/category Q3 delay labels and return thresholds."""
 
     working = frame.copy()
+    if service_routing_source not in {"agency", "category"}:
+        raise ValueError("service_routing_source must be 'agency' or 'category'")
+
     thresholds = (
         working.groupby(["city", "category"], dropna=False, observed=True)["resolution_hours"]
         .quantile(0.75)
@@ -51,14 +57,11 @@ def add_delayed_resolution_label(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.
     labeled["delayed"] = (
         labeled["resolution_hours"] > labeled["delay_threshold_hours"]
     ).astype("int8")
-    labeled["service_routing_target"] = (
-        labeled["agency"].astype("string").str.strip().fillna("")
-    )
+    primary = labeled[service_routing_source].astype("string").str.strip().fillna("")
+    fallback_column = "category" if service_routing_source == "agency" else "agency"
+    labeled["service_routing_target"] = primary
     fallback_mask = labeled["service_routing_target"].eq("")
-    labeled.loc[fallback_mask, "service_routing_target"] = labeled.loc[
-        fallback_mask,
-        "category",
-    ].astype("string")
+    labeled.loc[fallback_mask, "service_routing_target"] = labeled.loc[fallback_mask, fallback_column].astype("string")
     labeled["service_routing_target"] = labeled["service_routing_target"].astype("string")
 
     return labeled[LABELED_SCHEMA], thresholds
@@ -92,4 +95,3 @@ def _float_or_none(value) -> float | None:
     if pd.isna(value):
         return None
     return float(value)
-

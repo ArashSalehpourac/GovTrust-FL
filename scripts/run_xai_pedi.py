@@ -60,9 +60,12 @@ def main() -> int:
 
     tables_dir.mkdir(parents=True, exist_ok=True)
     figures_dir.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame([row]).to_csv(tables_dir / "pedi_metrics.csv", index=False)
+    pedi_results = pd.DataFrame([row])
+    pedi_results.to_csv(tables_dir / "pedi_metrics.csv", index=False)
+    pedi_results.to_csv(tables_dir / "pedi_results.csv", index=False)
     plot_importance(ref_importance, figures_dir / "shap_summary_reference.png", "Reference importance")
     plot_importance(private_importance, figures_dir / "shap_summary_private.png", "Private importance")
+    plot_pedi_drift(row, figures_dir / "pedi_drift_plot.png")
     print(f"Wrote PEDI metrics: {tables_dir / 'pedi_metrics.csv'}")
     return 0
 
@@ -105,6 +108,26 @@ def plot_importance(values: np.ndarray, output_path: Path, title: str) -> None:
     ax.set_yticks(range(len(top)))
     ax.set_yticklabels([f"f{index}" for index in top[::-1]])
     ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+
+
+def plot_pedi_drift(row: dict[str, object], output_path: Path) -> None:
+    """Plot a compact PEDI stability summary."""
+
+    labels = ["Spearman stability", "Top-k overlap", "PEDI"]
+    values = [
+        float(row["spearman_rank_stability"]),
+        float(row["top_k_overlap"]),
+        float(row["pedi"]),
+    ]
+    fig, ax = plt.subplots(figsize=(4.8, 3))
+    ax.bar(labels, values, color=["#666666", "#999999", "#333333"])
+    ax.set_ylim(0, max(1.0, max(values) + 0.1))
+    ax.set_ylabel("Score")
+    ax.set_title("Privacy-explanation drift summary")
+    ax.tick_params(axis="x", rotation=20)
     fig.tight_layout()
     fig.savefig(output_path, dpi=200)
     plt.close(fig)

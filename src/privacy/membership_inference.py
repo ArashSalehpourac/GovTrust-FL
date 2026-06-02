@@ -1,22 +1,13 @@
-"""Privacy accounting and attack-evaluation helpers."""
+"""Membership-inference attack utilities."""
 
-from dataclasses import dataclass
+from __future__ import annotations
 
 import numpy as np
 from sklearn.metrics import roc_auc_score
 
 
-@dataclass(frozen=True)
-class DPConfig:
-    """Differential privacy knobs for later Opacus experiments."""
-
-    noise_multiplier: float = 1.0
-    max_grad_norm: float = 1.0
-    delta: float = 1e-5
-
-
 def membership_inference_auc(member_scores, nonmember_scores) -> float:
-    """Estimate membership-inference leakage from confidence scores."""
+    """Estimate membership-inference leakage from confidence or loss scores."""
 
     labels = np.concatenate(
         [
@@ -34,4 +25,3 @@ def attack_advantage(attack_auc: float) -> float:
     """Convert attack AUC to a simple advantage score."""
 
     return float(abs(attack_auc - 0.5) * 2)
-

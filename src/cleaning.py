@@ -89,9 +89,17 @@ def clean_frame(frame: pd.DataFrame, min_category_samples: int = 100) -> tuple[p
         working["closed_date"] - working["created_date"]
     ).dt.total_seconds() / 3600
 
+    outlier_thresholds = working.groupby("city", dropna=False, observed=True)["resolution_hours"].transform(
+        lambda values: values.quantile(0.99) if len(values) >= 100 else values.max()
+    )
+    working, counts["resolution_hours_above_city_p99"] = _filter_and_count(
+        working,
+        working["resolution_hours"].le(outlier_thresholds),
+    )
+
     category_counts = working["category"].value_counts(dropna=False)
     valid_categories = working["category"].map(category_counts).ge(min_category_samples)
-    working, counts["category_lt_100"] = _filter_and_count(working, valid_categories)
+    working, counts["category_below_min_samples"] = _filter_and_count(working, valid_categories)
 
     working = working.sort_values(["created_date", "request_id"], kind="stable")
     working = working.reset_index(drop=True)
@@ -118,6 +126,10 @@ def clean_file(spec: CleaningSpec, min_category_samples: int = 100) -> dict[str,
         "columns": list(cleaned.columns),
         "created_date_min": _iso_or_none(cleaned["created_date"].min()),
         "created_date_max": _iso_or_none(cleaned["created_date"].max()),
+        "date_range": {
+            "created_date_min": _iso_or_none(cleaned["created_date"].min()),
+            "created_date_max": _iso_or_none(cleaned["created_date"].max()),
+        },
         "resolution_hours_min": _float_or_none(cleaned["resolution_hours"].min()),
         "resolution_hours_max": _float_or_none(cleaned["resolution_hours"].max()),
         "categories": int(cleaned["category"].nunique(dropna=True)),
@@ -140,4 +152,3 @@ def _float_or_none(value) -> float | None:
     if pd.isna(value):
         return None
     return float(value)
-

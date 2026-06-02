@@ -16,6 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import EXTERNAL_VALIDATION_CITY, FEDERATED_CLIENTS, ensure_project_dirs  # noqa: E402
+from src.calibration import expected_calibration_error  # noqa: E402
 from src.config_loader import load_config, resolve_path  # noqa: E402
 from src.features import build_xy  # noqa: E402
 from src.metrics import binary_classification_metrics, predict_scores  # noqa: E402
@@ -88,7 +89,10 @@ def main() -> int:
     tables_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
     metrics_path = tables_dir / "baseline_metrics.csv"
-    pd.DataFrame(rows).to_csv(metrics_path, index=False)
+    results = pd.DataFrame(rows)
+    results.to_csv(metrics_path, index=False)
+    results.to_csv(tables_dir / "baseline_results.csv", index=False)
+    results.to_latex(tables_dir / "baseline_results.tex", index=False, float_format="%.4f")
     (logs_dir / "baseline_run.json").write_text(json.dumps(run_log, indent=2), encoding="utf-8")
     print(f"Wrote baseline metrics: {metrics_path}")
     return 0
@@ -116,7 +120,9 @@ def evaluate_row(
     scores = predict_scores(model, x_test)
     inference_time_sec = time.perf_counter() - started
     metrics = binary_classification_metrics(y_test, scores)
+    model_path_size = None
     return {
+        "model": type(model.named_steps["model"]).__name__ if hasattr(model, "named_steps") else type(model).__name__,
         "setting": setting,
         "train_city": train_city,
         "test_city": test_city,
@@ -124,6 +130,9 @@ def evaluate_row(
         "test_rows": len(test_frame),
         "training_time_sec": training_time_sec,
         "inference_time_sec": inference_time_sec,
+        "memory_usage_mb": None,
+        "model_size_bytes": model_path_size,
+        "ece": expected_calibration_error(y_test, scores),
         **metrics,
     }
 

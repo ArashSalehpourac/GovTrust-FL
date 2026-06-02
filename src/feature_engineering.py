@@ -24,10 +24,14 @@ BASE_FEATURE_COLUMNS = [
     "hour",
     "day_of_week",
     "month",
+    "quarter",
+    "season",
     "is_weekend",
     "latitude_grid",
     "longitude_grid",
+    "area_request_count_1d",
     "area_request_count_7d",
+    "area_request_count_30d",
     "category_request_count_7d",
     "agency_request_count_7d",
 ]
@@ -118,16 +122,28 @@ def engineer_features(
     output["hour"] = working["created_date"].dt.hour.astype("int8")
     output["day_of_week"] = working["created_date"].dt.dayofweek.astype("int8")
     output["month"] = working["created_date"].dt.month.astype("int8")
+    output["quarter"] = working["created_date"].dt.quarter.astype("int8")
+    output["season"] = output["month"].map(month_to_season).astype("string")
     output["is_weekend"] = output["day_of_week"].isin([5, 6]).astype("int8")
 
     scale = 10**grid_precision
     output["latitude_grid"] = np.floor(working["latitude"].astype(float) * scale) / scale
     output["longitude_grid"] = np.floor(working["longitude"].astype(float) * scale) / scale
 
+    output["area_request_count_1d"] = historical_request_count(
+        working,
+        ["city", "area"],
+        "1D",
+    )
     output["area_request_count_7d"] = historical_request_count(
         working,
         ["city", "area"],
         "7D",
+    )
+    output["area_request_count_30d"] = historical_request_count(
+        working,
+        ["city", "area"],
+        "30D",
     )
     output["category_request_count_7d"] = historical_request_count(
         working,
@@ -183,6 +199,18 @@ def tfidf_feature_names(vectorizer: TfidfVectorizer) -> list[str]:
     return [f"tfidf_descriptor__{_safe_name(name)}" for name in vectorizer.get_feature_names_out()]
 
 
+def month_to_season(month: int) -> str:
+    """Map calendar month to meteorological season."""
+
+    if month in (12, 1, 2):
+        return "winter"
+    if month in (3, 4, 5):
+        return "spring"
+    if month in (6, 7, 8):
+        return "summer"
+    return "fall"
+
+
 def write_feature_manifest(
     path: Path,
     results: list[dict[str, object]],
@@ -205,7 +233,9 @@ def write_feature_manifest(
             "decimal_precision": grid_precision,
         },
         "workload_windows": {
+            "area_request_count_1d": "Prior requests in same city and area during previous 1 day, excluding current row.",
             "area_request_count_7d": "Prior requests in same city and area during previous 7 days, excluding current row.",
+            "area_request_count_30d": "Prior requests in same city and area during previous 30 days, excluding current row.",
             "category_request_count_7d": "Prior requests in same city and category during previous 7 days, excluding current row.",
             "agency_request_count_7d": "Prior requests in same city and agency during previous 7 days, excluding current row.",
         },

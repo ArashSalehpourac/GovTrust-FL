@@ -66,6 +66,7 @@ def main() -> int:
             "Keep only final statuses: Closed or Completed; remove cancelled, invalid, incomplete, and non-final statuses.",
             "Remove impossible coordinates: missing latitude/longitude, latitude outside [-90, 90], longitude outside [-180, 180], or coordinate (0, 0).",
             "Compute resolution_hours as closed_date - created_date in hours.",
+            "Remove extreme resolution_hours outliers above the city-specific 99th percentile when at least 100 cleaned rows are available.",
             "Remove categories with fewer than 100 samples within each city after the preceding cleaning rules.",
         ],
         "outputs": results,
@@ -77,4 +78,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
