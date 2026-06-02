@@ -41,3 +41,22 @@ def test_build_scorecard_ranks_better_tradeoff_first():
     scorecard = build_scorecard(raw)
 
     assert scorecard["model"].iloc[0] == "strong"
+
+
+def test_tai_score_monotonicity_for_uniform_component_improvement():
+    raw = pd.DataFrame(
+        {
+            "model": ["better", "worse"],
+            "utility": [0.8, 0.6],
+            "privacy_risk": [0.2, 0.4],
+            "pedi": [0.1, 0.3],
+            "fairness_gap": [0.1, 0.2],
+            "runtime_sec": [10.0, 20.0],
+            "calibration_error": [0.05, 0.10],
+        }
+    )
+
+    scorecard = build_scorecard(raw)
+
+    assert scorecard.iloc[0]["model"] == "better"
+    assert scorecard.iloc[0]["tai_score"] > scorecard.iloc[1]["tai_score"]

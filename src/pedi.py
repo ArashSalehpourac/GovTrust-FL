@@ -15,7 +15,11 @@ def spearman_rank_stability(reference, candidate) -> float:
         raise ValueError("Explanation vectors must have the same shape")
     if reference.size < 2:
         return float("nan")
+    if np.allclose(reference, reference[0]) or np.allclose(candidate, candidate[0]):
+        return 1.0 if np.allclose(reference, candidate) else 0.0
     correlation = spearmanr(reference, candidate, nan_policy="omit").correlation
+    if np.isnan(correlation):
+        return 1.0 if np.allclose(reference, candidate) else 0.0
     return float(correlation)
 
 

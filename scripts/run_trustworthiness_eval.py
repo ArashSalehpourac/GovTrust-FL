@@ -81,6 +81,9 @@ def main() -> int:
         combined_frames = []
         combined_true = []
         combined_scores = []
+        selection_frames = []
+        selection_true = []
+        selection_scores = []
         inference_time_sec = 0.0
 
         for city, frame in test_frames.items():
@@ -115,10 +118,14 @@ def main() -> int:
             combined_frames.append(frame.reset_index(drop=True))
             combined_true.append(y_test.to_numpy(dtype=int))
             combined_scores.append(np.asarray(scores, dtype=float))
+            if city != EXTERNAL_VALIDATION_CITY:
+                selection_frames.append(frame.reset_index(drop=True))
+                selection_true.append(y_test.to_numpy(dtype=int))
+                selection_scores.append(np.asarray(scores, dtype=float))
 
-        combined_frame = pd.concat(combined_frames, ignore_index=True)
-        y_all = np.concatenate(combined_true)
-        scores_all = np.concatenate(combined_scores)
+        combined_frame = pd.concat(selection_frames or combined_frames, ignore_index=True)
+        y_all = np.concatenate(selection_true or combined_true)
+        scores_all = np.concatenate(selection_scores or combined_scores)
         for group_column in group_columns:
             if group_column in combined_frame.columns:
                 fairness_rows.append(
@@ -171,6 +178,7 @@ def main() -> int:
         resources,
         privacy_table=read_optional_table(tables_dir / "privacy_attack_metrics.csv"),
         pedi_table=read_optional_table(tables_dir / "pedi_metrics.csv"),
+        external_validation_city=EXTERNAL_VALIDATION_CITY,
     )
     tai = build_scorecard(tai_input, weights=config["tai_score"]["weights"])
     tai = tai.rename(
@@ -201,6 +209,7 @@ def main() -> int:
             "reliability_curve": str(figures_dir / "reliability_curve.png"),
         },
         "note": "Fairness is geographic/service-category based. No demographic fairness claims are made.",
+        "external_validation_control": "Los Angeles metrics are reported as external validation outputs but excluded from TAI-Score model-selection inputs.",
     }
     (logs_dir / "trustworthiness_eval.json").write_text(json.dumps(log, indent=2), encoding="utf-8")
     print(f"Wrote trustworthiness tables to: {tables_dir}")
@@ -338,7 +347,13 @@ def build_tai_input(
     *,
     privacy_table: pd.DataFrame | None,
     pedi_table: pd.DataFrame | None,
+    external_validation_city: str = EXTERNAL_VALIDATION_CITY,
 ) -> pd.DataFrame:
+    if "test_city" in performance.columns:
+        performance = performance[performance["test_city"] != external_validation_city].copy()
+    if "city" in calibration.columns:
+        calibration = calibration[calibration["city"] != external_validation_city].copy()
+
     utility_rows = []
     for model, group in performance.groupby("model"):
         utility_rows.append(

@@ -18,7 +18,7 @@ from src.config import FEDERATED_CLIENTS, ensure_project_dirs  # noqa: E402
 from src.config_loader import load_config, resolve_path  # noqa: E402
 from src.features import build_xy  # noqa: E402
 from src.metrics import predict_scores  # noqa: E402
-from src.privacy import attack_advantage, membership_inference_auc  # noqa: E402
+from src.privacy import membership_inference_metrics  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,18 +50,9 @@ def main() -> int:
     )
     member_scores = confidence_scores(model, train)
     nonmember_scores = confidence_scores(model, nonmember)
-    attack_auc = membership_inference_auc(member_scores, nonmember_scores)
-    labels = np.concatenate([np.ones(len(member_scores)), np.zeros(len(nonmember_scores))])
-    scores = np.concatenate([member_scores, nonmember_scores])
-    thresholds = np.quantile(scores, np.linspace(0.05, 0.95, 19))
-    attack_accuracy = max(float(((scores >= threshold).astype(int) == labels).mean()) for threshold in thresholds)
     row = {
         "model": model_path.stem,
-        "attack_accuracy": attack_accuracy,
-        "attack_auc": attack_auc,
-        "attack_advantage": attack_advantage(attack_auc),
-        "member_rows": len(member_scores),
-        "nonmember_rows": len(nonmember_scores),
+        **membership_inference_metrics(member_scores, nonmember_scores),
     }
     tables_dir.mkdir(parents=True, exist_ok=True)
     output_path = tables_dir / "privacy_attack_metrics.csv"

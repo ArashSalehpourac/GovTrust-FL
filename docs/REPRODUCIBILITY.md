@@ -15,6 +15,14 @@ python -m pip install -r requirements.txt
 
 Synthetic data validate code behavior only; they are not paper results.
 
+The safest end-to-end command writes to an isolated temporary workspace:
+
+```powershell
+python scripts/run_full_pipeline.py
+```
+
+Use `--work-dir <path>` to keep the synthetic validation artifacts in a chosen location.
+
 ```powershell
 python scripts/make_synthetic_data.py --rows-per-city 100
 python scripts/prepare_data.py

@@ -52,6 +52,14 @@ python scripts/run_trustworthiness_eval.py
 python scripts/make_transparency_record.py
 ```
 
+To run the complete synthetic validation pipeline in an isolated temporary workspace:
+
+```powershell
+python scripts/run_full_pipeline.py
+```
+
+This command prints the temporary workspace path. Its outputs validate code behavior only and are not manuscript findings.
+
 The numbered manuscript workflow wrappers are also available:
 
 ```powershell

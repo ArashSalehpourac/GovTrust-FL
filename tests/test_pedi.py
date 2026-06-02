@@ -18,3 +18,15 @@ def test_pedi_reversed_explanations_show_drift():
 
     assert spearman_rank_stability(reference, candidate) < 0.0
     assert privacy_explanation_drift_index(reference, candidate) > 1.0
+
+
+def test_pedi_constant_vectors_are_handled_without_nan():
+    reference = np.array([1.0, 1.0, 1.0])
+    candidate = np.array([1.0, 1.0, 1.0])
+
+    assert spearman_rank_stability(reference, candidate) == 1.0
+    assert privacy_explanation_drift_index(reference, candidate) == 0.0
+
+    drifted = np.array([2.0, 2.0, 2.0])
+    assert spearman_rank_stability(reference, drifted) == 0.0
+    assert privacy_explanation_drift_index(reference, drifted) == 1.0

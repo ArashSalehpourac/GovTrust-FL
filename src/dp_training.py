@@ -17,6 +17,16 @@ class DPTrainingConfig:
     max_grad_norm: float = 1.0
     delta: float = 1e-5
 
+    def __post_init__(self) -> None:
+        """Validate privacy parameters before local DP training starts."""
+
+        if self.noise_multiplier < 0:
+            raise ValueError("noise_multiplier must be non-negative")
+        if self.max_grad_norm <= 0:
+            raise ValueError("max_grad_norm must be positive")
+        if not 0 < self.delta < 1:
+            raise ValueError("delta must be between 0 and 1")
+
 
 def make_private_if_enabled(
     model: torch.nn.Module,

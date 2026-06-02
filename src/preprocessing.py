@@ -112,7 +112,7 @@ def add_calendar_features(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def prepare_city_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    """Run the first-pass preprocessing pipeline for one city."""
+    """Run the initial preprocessing pipeline for one city."""
 
     output = harmonize_schema(frame)
     output = coerce_datetime_columns(output)

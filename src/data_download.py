@@ -11,7 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlencode
 
+import json
 import pandas as pd
+import requests
 
 
 @dataclass(frozen=True)
@@ -90,13 +92,13 @@ def download_csv_sample(
     multi-year extract. This helper is intended for lightweight ad hoc samples.
     """
 
-    source = OPEN_DATA_SOURCES[city]
-    if city == "boston":
-        raise NotImplementedError("Use scripts/download_step1_raw.py for Boston CKAN downloads.")
-
-    url = source_url(city, year)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
+    if city == "boston":
+        return download_boston_sample(output, year=year, limit=limit)
+
+    source = OPEN_DATA_SOURCES[city]
+    url = source_url(city, year)
     query = urlencode(
         {
             "$limit": limit,
@@ -106,3 +108,20 @@ def download_csv_sample(
     frame = pd.read_csv(f"{url}?{query}")
     frame.to_csv(output, index=False)
     return output
+
+
+def download_boston_sample(output_path: Path, *, year: int = 2025, limit: int = 1_000) -> Path:
+    """Download a small Boston CKAN sample as CSV."""
+
+    source = OPEN_DATA_SOURCES["boston"]
+    resource_id = source.dataset_ids[year]
+    params = urlencode({"resource_id": resource_id, "limit": limit, "sort": f"{source.date_field} asc"})
+    url = f"https://data.boston.gov/api/3/action/datastore_search?{params}"
+    response = requests.get(url, timeout=(15, 120), headers={"User-Agent": "GovTrust-FL/0.1"})
+    response.raise_for_status()
+    payload = json.loads(response.text)
+    records = payload["result"]["records"]
+    frame = pd.DataFrame(records)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_csv(output_path, index=False)
+    return output_path
