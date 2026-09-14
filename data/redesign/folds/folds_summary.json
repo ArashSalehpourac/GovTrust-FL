@@ -1,0 +1,64 @@
+{
+  "folds": [
+    {
+      "fold": "holdout_nyc",
+      "held_out_city": "nyc",
+      "source_cities": [
+        "chicago",
+        "boston",
+        "los_angeles"
+      ],
+      "train_rows": 32790,
+      "external_rows": 18561,
+      "feature_dim": 443,
+      "preprocessor_fingerprint": "3d64b8392509111cfef7d67e4237441d279234b99a47479b93951b89677473f1",
+      "sla_threshold_global_hours": 59.80423611111111,
+      "fold_dir": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_nyc"
+    },
+    {
+      "fold": "holdout_chicago",
+      "held_out_city": "chicago",
+      "source_cities": [
+        "nyc",
+        "boston",
+        "los_angeles"
+      ],
+      "train_rows": 32575,
+      "external_rows": 18868,
+      "feature_dim": 495,
+      "preprocessor_fingerprint": "3df45f7aeeb7734d03e85e3dabec85c4b95f7175b81431e2f3ed1f21419d40b6",
+      "sla_threshold_global_hours": 62.76361111111111,
+      "fold_dir": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_chicago"
+    },
+    {
+      "fold": "holdout_boston",
+      "held_out_city": "boston",
+      "source_cities": [
+        "nyc",
+        "chicago",
+        "los_angeles"
+      ],
+      "train_rows": 39076,
+      "external_rows": 9580,
+      "feature_dim": 567,
+      "preprocessor_fingerprint": "e628baed9d0607516a7c3aa0cccf8932e51be9cadc12e6ab165ed92c3697fff2",
+      "sla_threshold_global_hours": 48.63201388888889,
+      "fold_dir": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_boston"
+    },
+    {
+      "fold": "holdout_los_angeles",
+      "held_out_city": "los_angeles",
+      "source_cities": [
+        "nyc",
+        "chicago",
+        "boston"
+      ],
+      "train_rows": 32905,
+      "external_rows": 18397,
+      "feature_dim": 527,
+      "preprocessor_fingerprint": "07dbdcc59e71ffdf4d1022cd5dee1805a91b3b03d17a5bafea97b78946a01694",
+      "sla_threshold_global_hours": 21.851666666666667,
+      "fold_dir": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_los_angeles"
+    }
+  ]
+}

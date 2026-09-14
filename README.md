@@ -4,6 +4,10 @@ Federated learning starter project for delayed-resolution prediction across city
 
 The initial design treats NYC, Chicago, and Boston as federated clients, with Los Angeles held out for external validation. The main target is delayed resolution. Evaluation is planned across predictive performance, privacy, fairness, calibration, XAI stability, runtime, memory, and communication cost.
 
+The T2 redesign (four-fold leave-one-city-out, leakage-safe time-to-resolution target, formal
+example-level DP-SGD) lives alongside this pipeline in `src/redesign/`, `scripts/redesign/`, and
+`tests/redesign/`; see `docs/redesign/README.md`. The Step 1-19 pipeline below is unchanged.
+
 ## Project Layout
 
 - `data/raw/`: original city downloads.
