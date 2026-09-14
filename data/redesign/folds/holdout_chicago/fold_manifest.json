@@ -1,0 +1,279 @@
+{
+  "fold": "holdout_chicago",
+  "held_out_city": "chicago",
+  "source_cities": [
+    "nyc",
+    "boston",
+    "los_angeles"
+  ],
+  "protocol": "Four-fold leave-one-city-out. Source cities are split chronologically before any fitting. TF-IDF, encoders, imputers, scalers, target winsorization, SLA thresholds, and model selection all use source-city training rows only.",
+  "split_fractions": {
+    "train": 0.7,
+    "val": 0.15,
+    "internal_test": 0.15,
+    "method": "chronological by created_date within each source city"
+  },
+  "targets": {
+    "primary_target": "y_log1p_resolution_hours",
+    "primary_definition": "log1p(min(resolution_hours, winsor_hours))",
+    "winsor_quantile": 0.995,
+    "winsor_hours": 3624.3429330555796,
+    "secondary_target": "y_sla_breach",
+    "secondary_definition": "resolution_hours > per-category policy threshold; thresholds are train-only quantiles of source-city training rows",
+    "sla_quantile": 0.75,
+    "global_sla_threshold_hours": 62.76361111111111,
+    "category_sla_threshold_hours": {
+      "APPLIANCE": 830.0658333333333,
+      "Abandoned Vehicle": 3.7441666666666666,
+      "Bike/Roller/Skate Chronic": 0.35305555555555557,
+      "Blocked Driveway": 4.565555555555555,
+      "Building/Use": 4559.025277777778,
+      "Bulky Items": 90.06458333333333,
+      "Code Enforcement": 8.297992986111112,
+      "DOOR/WINDOW": 1035.253611111111,
+      "Dead Animal Removal": 19.55090277777778,
+      "Derelict Vehicles": 43.954166666666666,
+      "Dirty Condition": 31.943333333333335,
+      "ELECTRIC": 804.2536111111111,
+      "Electronic Waste": 77.27638888888889,
+      "Elevator": 1934.5803472222224,
+      "Encampment": 3.210138888888889,
+      "Enforcement & Abandoned Vehicles": 265.6778197916667,
+      "Environmental Services": 53.15162861111111,
+      "GENERAL": 1090.9625,
+      "General Construction/Plumbing": 627.1871527777778,
+      "Graffiti": 2292.1317119444448,
+      "Graffiti Removal": 71.84402777777778,
+      "HEAT/HOT WATER": 43.231458333333336,
+      "Highway Maintenance": 40.06303055555556,
+      "Homeless Encampment": 918.9701388888889,
+      "Housing": 65.06469638888889,
+      "Illegal Dumping": 184.9063888888889,
+      "Illegal Dumping Pickup": 112.24951388888888,
+      "Illegal Fireworks": 0.9048611111111111,
+      "Illegal Parking": 3.6146527777777777,
+      "Metal/Household Appliances": 87.44375000000001,
+      "Multiple Streetlight Issue": 3478.9808333333335,
+      "Needle Program": 1.5414452777777776,
+      "Noise": 207.41666666666666,
+      "Noise - Commercial": 0.8121527777777777,
+      "Noise - Helicopter": 443.898125,
+      "Noise - Residential": 34.19354166666667,
+      "Noise - Street/Sidewalk": 0.8647222222222223,
+      "Noise - Vehicle": 1.2536805555555555,
+      "Non-Emergency Police Matter": 0.7518055555555556,
+      "PAINT/PLASTER": 679.1055555555556,
+      "PLUMBING": 843.755,
+      "Park Maintenance & Safety": 65.39159527777777,
+      "Recycling": 149.23167659722222,
+      "Residential Disposal Complaint": 30.244722222222222,
+      "Rodent": 23.95875,
+      "Sanitation": 15.322479999999999,
+      "Signs & Signals": 19.419758194444444,
+      "Single Streetlight Issue": 5308.785,
+      "Street Cleaning": 6.391992013888889,
+      "Street Condition": 52.660555555555554,
+      "Street Light Condition": 218.57916666666668,
+      "Street Lights": 75.37464819444443,
+      "Traffic Signal Condition": 3.875,
+      "Trees": 291.4586369444445,
+      "UNSANITARY CONDITION": 1034.5034027777779,
+      "WATER LEAK": 689.1487500000001,
+      "Water System": 27.5125
+    },
+    "min_category_rows_for_threshold": 50,
+    "fit_scope": {
+      "rows": 32575,
+      "cities": [
+        "boston",
+        "los_angeles",
+        "nyc"
+      ],
+      "split": "source-city train only"
+    }
+  },
+  "preprocessing": {
+    "fit_scope": {
+      "fold": "holdout_chicago",
+      "held_out_city": "chicago",
+      "fitted_on_cities": [
+        "boston",
+        "los_angeles",
+        "nyc"
+      ],
+      "fitted_on_split": "train",
+      "fitted_on_rows": 32575,
+      "created_date_max": "2025-01-07T12:02:35.657000"
+    },
+    "fingerprint": "3df45f7aeeb7734d03e85e3dabec85c4b95f7175b81431e2f3ed1f21419d40b6",
+    "output_dim": 495,
+    "tfidf": {
+      "column": "descriptor",
+      "vocabulary_size": 100,
+      "max_features": 100,
+      "min_df": 5
+    },
+    "categorical_features": [
+      "category",
+      "descriptor",
+      "agency",
+      "area"
+    ],
+    "categorical_levels": {
+      "category": 65,
+      "descriptor": 266,
+      "agency": 19,
+      "area": 194
+    },
+    "numeric_features": [
+      "hour",
+      "day_of_week",
+      "month",
+      "is_weekend",
+      "latitude_grid",
+      "longitude_grid",
+      "area_request_count_7d",
+      "category_request_count_7d",
+      "agency_request_count_7d"
+    ],
+    "numeric_median": [
+      11.0,
+      1.0,
+      1.0,
+      0.0,
+      40.67,
+      -73.96,
+      55.0,
+      437.0,
+      1341.0
+    ],
+    "numeric_mean": [
+      10.89709900230238,
+      1.3580046047582501,
+      1.0,
+      0.039846508058326936,
+      38.439079969301616,
+      -90.90788518802763,
+      98.45805065234075,
+      864.4947352264006,
+      1918.8239140445128
+    ],
+    "numeric_scale": [
+      6.084110063766019,
+      1.3284645728198514,
+      1.0,
+      0.1955984761031758,
+      3.569455488706025,
+      22.229042210717292,
+      163.02611107138043,
+      1164.9897177843554,
+      1844.4179951028248
+    ]
+  },
+  "splits": {
+    "nyc": {
+      "train": {
+        "rows": 12992,
+        "created_date_min": "2024-01-01T00:00:20",
+        "created_date_max": "2025-01-01T08:43:38",
+        "resolution_hours_median": 2.8274999999999997,
+        "y_log1p_resolution_hours_mean": 2.1007187366485596,
+        "y_sla_breach_rate": 0.2513084975369458
+      },
+      "val": {
+        "rows": 2784,
+        "created_date_min": "2025-01-01T08:43:48",
+        "created_date_max": "2025-01-01T14:52:21",
+        "resolution_hours_median": 28.041666666666664,
+        "y_log1p_resolution_hours_mean": 2.9682178497314453,
+        "y_sla_breach_rate": 0.18354885057471265
+      },
+      "internal_test": {
+        "rows": 2785,
+        "created_date_min": "2025-01-01T14:52:59",
+        "created_date_max": "2025-01-01T21:12:24",
+        "resolution_hours_median": 21.685555555555556,
+        "y_log1p_resolution_hours_mean": 2.640733242034912,
+        "y_sla_breach_rate": 0.17055655296229802
+      }
+    },
+    "boston": {
+      "train": {
+        "rows": 6706,
+        "created_date_min": "2024-01-01T00:20:52.963000",
+        "created_date_max": "2025-01-07T12:02:35.657000",
+        "resolution_hours_median": 3.7637279166666664,
+        "y_log1p_resolution_hours_mean": 2.230942726135254,
+        "y_sla_breach_rate": 0.25350432448553534
+      },
+      "val": {
+        "rows": 1437,
+        "created_date_min": "2025-01-07T12:05:08.617000",
+        "created_date_max": "2025-01-12T13:38:38.640000",
+        "resolution_hours_median": 2.6241480555555556,
+        "y_log1p_resolution_hours_mean": 1.6925073862075806,
+        "y_sla_breach_rate": 0.21294363256784968
+      },
+      "internal_test": {
+        "rows": 1437,
+        "created_date_min": "2025-01-12T13:39:17.017000",
+        "created_date_max": "2025-01-17T00:29:17.970000",
+        "resolution_hours_median": 2.7928591666666667,
+        "y_log1p_resolution_hours_mean": 1.6073495149612427,
+        "y_sla_breach_rate": 0.16562282533054976
+      }
+    },
+    "los_angeles": {
+      "train": {
+        "rows": 12877,
+        "created_date_min": "2024-01-01T00:00:06",
+        "created_date_max": "2025-01-02T09:41:26",
+        "resolution_hours_median": 48.594166666666666,
+        "y_log1p_resolution_hours_mean": 3.7625503540039062,
+        "y_sla_breach_rate": 0.2500582433796692
+      },
+      "val": {
+        "rows": 2760,
+        "created_date_min": "2025-01-02T09:41:29",
+        "created_date_max": "2025-01-02T15:31:20",
+        "resolution_hours_median": 45.21736111111111,
+        "y_log1p_resolution_hours_mean": 3.4464573860168457,
+        "y_sla_breach_rate": 0.336231884057971
+      },
+      "internal_test": {
+        "rows": 2760,
+        "created_date_min": "2025-01-02T15:31:20",
+        "created_date_max": "2025-01-03T09:40:43",
+        "resolution_hours_median": 34.95402777777778,
+        "y_log1p_resolution_hours_mean": 3.10237979888916,
+        "y_sla_breach_rate": 0.25181159420289856
+      }
+    }
+  },
+  "external": {
+    "rows": 18868,
+    "created_date_min": "2024-01-01T00:00:12",
+    "created_date_max": "2025-01-03T11:48:35",
+    "resolution_hours_median": 0.0002777777777777778,
+    "y_log1p_resolution_hours_mean": 1.2176001071929932,
+    "y_sla_breach_rate": 0.15078439686241255
+  },
+  "isolation_checks": {
+    "held_out_city_in_fitting_frames": false,
+    "request_id_overlap_source_vs_external": 0,
+    "cities_in_source_splits": [
+      "boston",
+      "los_angeles",
+      "nyc"
+    ],
+    "cities_in_external": [
+      "chicago"
+    ],
+    "preprocessor_fingerprint": "3df45f7aeeb7734d03e85e3dabec85c4b95f7175b81431e2f3ed1f21419d40b6",
+    "source_train_id_digest": "e7569c61e278d8274bbe8ea17bdc3f69b51c180488398096e4c0d510b8e3c4a1"
+  },
+  "artifacts": {
+    "preprocessor": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_chicago/preprocessor.joblib",
+    "target_policy": "/home/ubuntu/repos/GovTrust-FL/data/redesign/folds/holdout_chicago/target_policy.json"
+  }
+}

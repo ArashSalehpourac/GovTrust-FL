@@ -28,3 +28,10 @@ results/**/*
 !results/**/
 !results/**/.gitkeep
 
+
+# Redesign (T2) pilot artifacts: keep manifests/summaries, ignore bulk data
+data/redesign/**/*.parquet
+data/redesign/**/*.joblib
+results/redesign/runs/**
+!results/redesign/pilot_summary.csv
+!results/redesign/pilot_subgroup_reliability.csv

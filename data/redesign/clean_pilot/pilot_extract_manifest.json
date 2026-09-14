@@ -1,0 +1,102 @@
+{
+  "extract": "pilot",
+  "created_at_utc": "2026-09-14T20:35:48Z",
+  "rows_per_city_cap": 20000,
+  "window": "2024-01-01 through 2025-12-31, earliest-first per source dataset",
+  "cleaning_rules": "Historical Step 3 rules from src.cleaning.clean_frame",
+  "min_category_samples": 50,
+  "outputs": [
+    {
+      "city": "nyc",
+      "source": "Socrata data.cityofnewyork.us ['erm2-nwe9', 'erm2-nwe9']",
+      "raw_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/raw_pilot/nyc_pilot_raw.parquet",
+      "clean_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/clean_pilot/nyc_pilot_clean.parquet",
+      "raw_rows": 20000,
+      "clean_rows": 18561,
+      "cleaning_counts": {
+        "input_rows": 20000,
+        "missing_created_date": 0,
+        "missing_closed_date": 153,
+        "closed_before_created": 2,
+        "duplicate_request_id": 0,
+        "cancelled_invalid_incomplete_status": 7,
+        "impossible_coordinates": 197,
+        "category_lt_100": 1080,
+        "output_rows": 18561,
+        "total_removed": 1439
+      },
+      "created_date_min": "2024-01-01T00:00:20",
+      "created_date_max": "2025-01-01T21:12:24",
+      "categories": 42
+    },
+    {
+      "city": "chicago",
+      "source": "Socrata data.cityofchicago.org ['v6vf-nfxy', 'v6vf-nfxy']",
+      "raw_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/raw_pilot/chicago_pilot_raw.parquet",
+      "clean_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/clean_pilot/chicago_pilot_clean.parquet",
+      "raw_rows": 20000,
+      "clean_rows": 18868,
+      "cleaning_counts": {
+        "input_rows": 20000,
+        "missing_created_date": 0,
+        "missing_closed_date": 171,
+        "closed_before_created": 0,
+        "duplicate_request_id": 0,
+        "cancelled_invalid_incomplete_status": 215,
+        "impossible_coordinates": 2,
+        "category_lt_100": 744,
+        "output_rows": 18868,
+        "total_removed": 1132
+      },
+      "created_date_min": "2024-01-01T00:00:12",
+      "created_date_max": "2025-01-03T11:48:35",
+      "categories": 34
+    },
+    {
+      "city": "los_angeles",
+      "source": "Socrata data.lacity.org ['b7dx-7gc3', 'h73f-gn57']",
+      "raw_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/raw_pilot/los_angeles_pilot_raw.parquet",
+      "clean_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/clean_pilot/los_angeles_pilot_clean.parquet",
+      "raw_rows": 20000,
+      "clean_rows": 18397,
+      "cleaning_counts": {
+        "input_rows": 20000,
+        "missing_created_date": 0,
+        "missing_closed_date": 465,
+        "closed_before_created": 0,
+        "duplicate_request_id": 0,
+        "cancelled_invalid_incomplete_status": 1064,
+        "impossible_coordinates": 6,
+        "category_lt_100": 68,
+        "output_rows": 18397,
+        "total_removed": 1603
+      },
+      "created_date_min": "2024-01-01T00:00:06",
+      "created_date_max": "2025-01-03T09:40:43",
+      "categories": 9
+    },
+    {
+      "city": "boston",
+      "source": "CKAN https://data.boston.gov/api/3/action/datastore_search ['dff4d804-5031-443a-8409-8344efd0e5c8', '9d7c2214-4709-478a-a2e8-fb2020a5bb94']",
+      "raw_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/raw_pilot/boston_pilot_raw.parquet",
+      "clean_path": "/home/ubuntu/repos/GovTrust-FL/data/redesign/clean_pilot/boston_pilot_clean.parquet",
+      "raw_rows": 20000,
+      "clean_rows": 9580,
+      "cleaning_counts": {
+        "input_rows": 20000,
+        "missing_created_date": 9182,
+        "missing_closed_date": 1042,
+        "closed_before_created": 0,
+        "duplicate_request_id": 0,
+        "cancelled_invalid_incomplete_status": 0,
+        "impossible_coordinates": 53,
+        "category_lt_100": 143,
+        "output_rows": 9580,
+        "total_removed": 10420
+      },
+      "created_date_min": "2024-01-01T00:20:52.963000",
+      "created_date_max": "2025-01-17T00:29:17.970000",
+      "categories": 15
+    }
+  ]
+}
