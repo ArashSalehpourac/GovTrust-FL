@@ -14,13 +14,7 @@ from .config import T2Config
 from .data import frame_summary, prepare_resolved_frame
 from .federated import evaluate_external_after_selection, train_select
 from .folds import loco_spec, split_source_cities
-from .preprocessing import (
-    CAT_COLS,
-    NUM_COLS,
-    TEXT_COL,
-    category_oov_rate,
-    fit_source_train,
-)
+from .preprocessing import build_fixed_preprocessor, feature_manifest
 from .provenance import new_manifest_skeleton, sha256_file, validate_completed_manifest
 
 ExternalLoader = Callable[[], tuple[pd.DataFrame, str]]
@@ -54,6 +48,7 @@ def run_one(
     command: str,
 ) -> dict[str, object]:
     """One provenance-complete run with physically delayed held-out-data loading."""
+
     started = time.perf_counter()
     spec = loco_spec(held_out_city)
     config.validate()
@@ -62,13 +57,19 @@ def run_one(
     if set(source_input_sha256) != set(spec.source_cities):
         raise ValueError("source SHA256 required for all and only source cities")
 
-    prepared_source = {city: prepare_resolved_frame(raw_source_frames[city]) for city in spec.source_cities}
+    prepared_source = {
+        city: prepare_resolved_frame(raw_source_frames[city])
+        for city in spec.source_cities
+    }
     source_splits = split_source_cities(prepared_source, spec)
-    preprocessor = fit_source_train(source_splits)
+    preprocessor = build_fixed_preprocessor()
 
     manifest = new_manifest_skeleton(
-        config=config.as_dict(), fold=spec.name, held_out_city=held_out_city,
-        source_cities=list(spec.source_cities), command=command,
+        config=config.as_dict(),
+        fold=spec.name,
+        held_out_city=held_out_city,
+        source_cities=list(spec.source_cities),
+        command=command,
     )
     manifest["input_sha256"] = dict(source_input_sha256)
     manifest["row_counts"] = {
@@ -77,13 +78,7 @@ def run_one(
     }
     manifest["date_ranges"] = _date_ranges(source_splits)
     manifest["preprocessor_fingerprint"] = preprocessor.fingerprint
-    manifest["features"] = {
-        "text": TEXT_COL,
-        "categorical": CAT_COLS,
-        "numeric": NUM_COLS,
-        "explicitly_excluded_primary": ["city", "agency", "latitude", "longitude", "latitude_grid", "longitude_grid", "area", "zip_code"],
-        "fit_scope": "source-city train partitions only",
-    }
+    manifest["features"] = feature_manifest(preprocessor)
 
     # Source-only training and checkpoint selection complete before external_loader is called.
     selected = train_select(source_splits, preprocessor, config)
@@ -91,23 +86,31 @@ def run_one(
     external_raw, external_sha256 = external_loader()
     manifest["input_sha256"][held_out_city] = external_sha256
     external_frame = prepare_resolved_frame(external_raw)
-    external_metrics = evaluate_external_after_selection(selected, external_frame, preprocessor)
+    external_metrics = evaluate_external_after_selection(
+        selected,
+        external_frame,
+        preprocessor,
+    )
     manifest["row_counts"][held_out_city] = {"external": len(external_frame)}
-    manifest["date_ranges"][held_out_city] = {"external": frame_summary(external_frame)}
-    manifest["features"]["external_category_oov_rate"] = category_oov_rate(preprocessor, external_frame)
+    manifest["date_ranges"][held_out_city] = {
+        "external": frame_summary(external_frame)
+    }
     manifest["privacy"] = selected["privacy_by_city"]
     manifest["training"] = {
         "algorithm": "fedavg",
         "primary_target": "log1p(resolution_hours)",
         "loss": "SmoothL1",
         "best_round": int(selected["best_round"]),
-        "source_val_best_macro_mae_log1p_hours": float(selected["source_val_best_macro_mae_log1p_hours"]),
+        "source_val_best_macro_mae_log1p_hours": float(
+            selected["source_val_best_macro_mae_log1p_hours"]
+        ),
         "would_stop_round": selected["would_stop_round"],
         "round_cap": config.rounds,
         "local_epochs": config.local_epochs,
         "batch_size": config.batch_size,
         "learning_rate": config.learning_rate,
         "selection_scope": "source-city validation only",
+        "dp_scope": "source-city training rows only",
     }
 
     out_dir = Path(output_dir) / str(manifest["run_uuid"])
@@ -135,16 +138,28 @@ def run_one(
         "fold": spec.name,
         "selection": {
             "best_round": selected["best_round"],
-            "source_val_best_macro_mae_log1p_hours": selected["source_val_best_macro_mae_log1p_hours"],
+            "source_val_best_macro_mae_log1p_hours": selected[
+                "source_val_best_macro_mae_log1p_hours"
+            ],
             "would_stop_round": selected["would_stop_round"],
         },
         "internal_by_city": selected["internal_by_city"],
-        "source_macro_mae_log1p_hours": selected["source_macro_mae_log1p_hours"],
+        "source_macro_mae_log1p_hours": selected[
+            "source_macro_mae_log1p_hours"
+        ],
         "external": external_metrics,
-        "fold_realized_epsilon_max_client": max(privacy_eps) if privacy_eps else float("inf"),
+        "fold_realized_epsilon_max_client": (
+            max(privacy_eps) if privacy_eps else float("inf")
+        ),
         "manifest": manifest,
     }
 
-    (out_dir / "run.json").write_text(json.dumps(_safe(run), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (out_dir / "manifest.json").write_text(json.dumps(_safe(manifest), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out_dir / "run.json").write_text(
+        json.dumps(_safe(run), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (out_dir / "manifest.json").write_text(
+        json.dumps(_safe(manifest), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     return run

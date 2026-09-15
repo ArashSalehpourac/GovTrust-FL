@@ -13,7 +13,7 @@ from .config import T2Config
 from .data import PRIMARY_TARGET
 from .evaluation import macro_source_mae, regression_metrics
 from .model import ResolutionMLP, regression_loss
-from .preprocessing import SourceTrainPreprocessor
+from .preprocessing import FixedPreprocessor
 from .privacy import (
     PrivacyState,
     load_plain_state_dict,
@@ -34,7 +34,7 @@ class ClientBundle:
         return int(self.x.shape[0])
 
 
-def _tensorize(frame: pd.DataFrame, pre: SourceTrainPreprocessor) -> tuple[torch.Tensor, torch.Tensor]:
+def _tensorize(frame: pd.DataFrame, pre: FixedPreprocessor) -> tuple[torch.Tensor, torch.Tensor]:
     x = torch.from_numpy(pre.transform(frame))
     y = torch.from_numpy(frame[PRIMARY_TARGET].to_numpy(dtype=np.float32))
     return x, y
@@ -46,11 +46,11 @@ def _predict(model: torch.nn.Module, x: torch.Tensor, batch_size: int = 4096) ->
     rows: list[np.ndarray] = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
-            rows.append(base(x[start:start + batch_size]).cpu().numpy())
+            rows.append(base(x[start : start + batch_size]).cpu().numpy())
     return np.concatenate(rows) if rows else np.array([], dtype=np.float32)
 
 
-def _evaluate_frame(model: torch.nn.Module, frame: pd.DataFrame, pre: SourceTrainPreprocessor) -> dict[str, float]:
+def _evaluate_frame(model: torch.nn.Module, frame: pd.DataFrame, pre: FixedPreprocessor) -> dict[str, float]:
     x, y = _tensorize(frame, pre)
     return regression_metrics(y.numpy(), _predict(model, x))
 
@@ -71,10 +71,11 @@ def _average_states(states: list[tuple[dict[str, torch.Tensor], int]]) -> dict[s
 
 def train_select(
     source_splits: Mapping[str, Mapping[str, pd.DataFrame]],
-    preprocessor: SourceTrainPreprocessor,
+    preprocessor: FixedPreprocessor,
     config: T2Config,
 ) -> dict[str, object]:
     """Train/select using SOURCE cities only. No external frame is accepted."""
+
     config.validate()
     torch.manual_seed(config.seed)
     np.random.seed(config.seed)
@@ -85,7 +86,12 @@ def train_select(
     clients: dict[str, ClientBundle] = {}
     for city, splits in source_splits.items():
         x, y = _tensorize(splits["train"], preprocessor)
-        loader = DataLoader(TensorDataset(x, y), batch_size=config.batch_size, shuffle=True, drop_last=False)
+        loader = DataLoader(
+            TensorDataset(x, y),
+            batch_size=config.batch_size,
+            shuffle=True,
+            drop_last=False,
+        )
         local_model = ResolutionMLP(input_dim, config.hidden_sizes)
         load_plain_state_dict(local_model, global_state)
         planned_steps = config.rounds * config.local_epochs * max(1, len(loader))
@@ -138,13 +144,15 @@ def train_select(
             for city in sorted(source_splits)
         }
         macro_val = macro_source_mae(val_by_city)
-        history.append({
-            "round": round_number,
-            "local_train_loss": local_losses,
-            "source_val_by_city": val_by_city,
-            "source_val_macro_mae_log1p_hours": macro_val,
-            "privacy_by_city": privacy_round,
-        })
+        history.append(
+            {
+                "round": round_number,
+                "local_train_loss": local_losses,
+                "source_val_by_city": val_by_city,
+                "source_val_macro_mae_log1p_hours": macro_val,
+                "privacy_by_city": privacy_round,
+            }
+        )
 
         if macro_val < best_macro_val:
             best_macro_val = macro_val
@@ -167,7 +175,9 @@ def train_select(
         city: bundle.privacy.report(config.epsilon_tolerance)
         for city, bundle in clients.items()
     }
-    if config.mode == "private" and not all(r["target_achieved_within_tolerance"] for r in privacy_reports.values()):
+    if config.mode == "private" and not all(
+        report["target_achieved_within_tolerance"] for report in privacy_reports.values()
+    ):
         raise RuntimeError("realized epsilon is outside tolerance; do not label this run as target epsilon")
 
     return {
@@ -186,9 +196,10 @@ def train_select(
 def evaluate_external_after_selection(
     selected: Mapping[str, object],
     external_frame: pd.DataFrame,
-    preprocessor: SourceTrainPreprocessor,
+    preprocessor: FixedPreprocessor,
 ) -> dict[str, float]:
     """External outcomes enter only after the source-only checkpoint is frozen."""
+
     model = selected["model"]
     if not isinstance(model, torch.nn.Module):
         raise TypeError("selected model missing")

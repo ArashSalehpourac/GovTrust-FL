@@ -2,82 +2,160 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.feature_extraction import FeatureHasher
+from sklearn.feature_extraction.text import HashingVectorizer
 
 TEXT_COL = "descriptor"
 CAT_COLS = ["category"]
 NUM_COLS = ["hour", "day_of_week", "month", "is_weekend"]
-FORBIDDEN_PRIMARY = {"city", "agency", "latitude", "longitude", "latitude_grid", "longitude_grid", "area", "zip_code"}
+FORBIDDEN_PRIMARY = {
+    "city",
+    "agency",
+    "latitude",
+    "longitude",
+    "latitude_grid",
+    "longitude_grid",
+    "area",
+    "zip_code",
+}
+TEXT_HASH_DIM = 512
+CATEGORY_HASH_DIM = 64
+NUMERIC_OUTPUT_FEATURES = (
+    "hour_sin",
+    "hour_cos",
+    "day_of_week_sin",
+    "day_of_week_cos",
+    "month_sin",
+    "month_cos",
+    "is_weekend",
+)
 
 
-@dataclass
-class SourceTrainPreprocessor:
-    transformer: ColumnTransformer
-    fitted_rows: int
-    fitted_cities: tuple[str, ...]
+@dataclass(frozen=True)
+class FixedPreprocessor:
+    """Data-independent primary representation.
+
+    No vocabulary, category level, imputer, scaler, or statistic is learned from
+    any municipal record. This is required so the released DP pipeline does not
+    leak through an unprotected preprocessing fit.
+    """
+
+    descriptor_hasher: HashingVectorizer
+    category_hasher: FeatureHasher
+    text_hash_dim: int
+    category_hash_dim: int
     fingerprint: str
 
     @property
     def output_dim(self) -> int:
-        return len(self.transformer.get_feature_names_out())
+        return self.text_hash_dim + self.category_hash_dim + len(NUMERIC_OUTPUT_FEATURES)
 
     def transform(self, frame: pd.DataFrame) -> np.ndarray:
-        x = self.transformer.transform(frame)
-        if hasattr(x, "toarray"):
-            x = x.toarray()
-        return np.asarray(x, dtype=np.float32)
+        required = {TEXT_COL, *CAT_COLS, *NUM_COLS}
+        missing = required - set(frame.columns)
+        if missing:
+            raise ValueError(f"missing primary feature columns: {sorted(missing)}")
+
+        descriptor = frame[TEXT_COL].fillna("").astype(str)
+        text = self.descriptor_hasher.transform(descriptor)
+
+        category_tokens = [
+            [f"category={value}"]
+            for value in frame[CAT_COLS[0]].fillna("UNK").astype(str)
+        ]
+        category = self.category_hasher.transform(category_tokens)
+
+        hour = pd.to_numeric(frame["hour"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
+        day = pd.to_numeric(frame["day_of_week"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
+        month = pd.to_numeric(frame["month"], errors="coerce").fillna(1.0).to_numpy(dtype=float)
+        weekend = pd.to_numeric(frame["is_weekend"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
+
+        numeric = np.column_stack(
+            [
+                np.sin(2.0 * np.pi * hour / 24.0),
+                np.cos(2.0 * np.pi * hour / 24.0),
+                np.sin(2.0 * np.pi * day / 7.0),
+                np.cos(2.0 * np.pi * day / 7.0),
+                np.sin(2.0 * np.pi * (month - 1.0) / 12.0),
+                np.cos(2.0 * np.pi * (month - 1.0) / 12.0),
+                weekend,
+            ]
+        ).astype(np.float32)
+
+        if hasattr(text, "toarray"):
+            text = text.toarray()
+        if hasattr(category, "toarray"):
+            category = category.toarray()
+        return np.concatenate(
+            [
+                np.asarray(text, dtype=np.float32),
+                np.asarray(category, dtype=np.float32),
+                numeric,
+            ],
+            axis=1,
+        )
 
 
-def fit_source_train(source_splits: Mapping[str, Mapping[str, pd.DataFrame]], max_text_features: int = 1000) -> SourceTrainPreprocessor:
-    cities = tuple(sorted(source_splits))
-    train = pd.concat([source_splits[c]["train"] for c in cities], ignore_index=True)
-    if any(col in FORBIDDEN_PRIMARY for col in CAT_COLS + NUM_COLS + [TEXT_COL]):
-        raise AssertionError("forbidden city shortcut in primary feature set")
+def build_fixed_preprocessor(
+    *,
+    text_hash_dim: int = TEXT_HASH_DIM,
+    category_hash_dim: int = CATEGORY_HASH_DIM,
+) -> FixedPreprocessor:
+    """Construct the fixed representation without accepting or inspecting data."""
 
-    text_pipe = Pipeline([
-        ("tfidf", TfidfVectorizer(max_features=max_text_features, min_df=2, ngram_range=(1, 2))),
-    ])
-    transformer = ColumnTransformer(
-        transformers=[
-            ("text", text_pipe, TEXT_COL),
-            ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=True), CAT_COLS),
-            ("num", StandardScaler(), NUM_COLS),
-        ],
-        remainder="drop",
-        sparse_threshold=0.3,
+    if text_hash_dim < 1 or category_hash_dim < 1:
+        raise ValueError("hash dimensions must be positive")
+
+    descriptor_hasher = HashingVectorizer(
+        n_features=text_hash_dim,
+        alternate_sign=False,
+        ngram_range=(1, 2),
+        norm="l2",
+        lowercase=True,
     )
-    transformer.fit(train)
-
-    tfidf = transformer.named_transformers_["text"].named_steps["tfidf"]
-    encoder = transformer.named_transformers_["cat"]
-    scaler = transformer.named_transformers_["num"]
+    category_hasher = FeatureHasher(
+        n_features=category_hash_dim,
+        input_type="string",
+        alternate_sign=False,
+    )
     canonical = {
-        "fit_scope": "source-city train partitions only",
-        "cities": list(cities),
-        "rows": len(train),
-        "text_vocabulary": [
-            [str(token), int(index)]
-            for token, index in sorted(tfidf.vocabulary_.items(), key=lambda kv: int(kv[1]))
-        ],
-        "category_levels": [list(map(str, levels)) for levels in encoder.categories_],
-        "numeric_mean": np.asarray(scaler.mean_, dtype=float).round(12).tolist(),
-        "numeric_scale": np.asarray(scaler.scale_, dtype=float).round(12).tolist(),
-        "features": {"text": TEXT_COL, "categorical": CAT_COLS, "numeric": NUM_COLS},
+        "representation": "data-independent hashing plus deterministic cyclical time encoding",
+        "text_column": TEXT_COL,
+        "text_hash_dim": text_hash_dim,
+        "text_ngram_range": [1, 2],
+        "text_alternate_sign": False,
+        "text_norm": "l2",
+        "category_column": CAT_COLS[0],
+        "category_hash_dim": category_hash_dim,
+        "category_alternate_sign": False,
+        "numeric_inputs": NUM_COLS,
+        "numeric_outputs": list(NUMERIC_OUTPUT_FEATURES),
     }
-    fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    return SourceTrainPreprocessor(transformer, len(train), cities, fingerprint)
+    fingerprint = hashlib.sha256(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return FixedPreprocessor(
+        descriptor_hasher=descriptor_hasher,
+        category_hasher=category_hasher,
+        text_hash_dim=text_hash_dim,
+        category_hash_dim=category_hash_dim,
+        fingerprint=fingerprint,
+    )
 
 
-def category_oov_rate(preprocessor: SourceTrainPreprocessor, frame: pd.DataFrame) -> float:
-    encoder = preprocessor.transformer.named_transformers_["cat"]
-    known = set(map(str, encoder.categories_[0]))
-    values = frame["category"].astype(str)
-    return float((~values.isin(known)).mean()) if len(values) else 0.0
+def feature_manifest(preprocessor: FixedPreprocessor) -> dict[str, object]:
+    return {
+        "representation": "data-independent fixed hashing",
+        "text": TEXT_COL,
+        "text_hash_dim": preprocessor.text_hash_dim,
+        "categorical": CAT_COLS,
+        "category_hash_dim": preprocessor.category_hash_dim,
+        "numeric_inputs": NUM_COLS,
+        "numeric_outputs": list(NUMERIC_OUTPUT_FEATURES),
+        "fit_scope": "none; no data-dependent preprocessing fit",
+        "explicitly_excluded_primary": sorted(FORBIDDEN_PRIMARY),
+    }

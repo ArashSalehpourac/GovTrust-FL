@@ -10,6 +10,8 @@ from torch.utils.data import DataLoader
 
 from .config import delta_for_client
 
+SECURE_RNG = False
+
 
 @dataclass
 class PrivacyState:
@@ -58,15 +60,34 @@ class PrivacyState:
 
     def report(self, epsilon_tolerance: float) -> dict[str, object]:
         realized = self.realized_epsilon()
-        achieved = self.mode != "private" or abs(realized - self.target_epsilon) <= epsilon_tolerance
+        achieved = (
+            self.mode != "private"
+            or abs(realized - self.target_epsilon) <= epsilon_tolerance
+        )
         if self.mode == "private" and self.accountant_steps() != self.steps_taken:
-            raise RuntimeError("privacy accountant step count does not match executed optimizer steps")
+            raise RuntimeError(
+                "privacy accountant step count does not match executed optimizer steps"
+            )
         return {
             "mode": self.mode,
-            "unit": "one service-request row within the source city",
-            "mechanism": "Opacus example-level DP-SGD" if self.mode == "private" else (
-                "Opacus per-sample clipping with zero noise; non-private matched control"
-                if self.mode == "clipped_no_noise" else "standard non-private SGD"
+            "unit": "one source-city training service-request row",
+            "scope_note": (
+                "epsilon-delta DP covers each client's training partition. "
+                "Validation, internal-test, and held-out evaluation rows are not "
+                "part of the protected training dataset."
+            ),
+            "preprocessing": (
+                "data-independent fixed hashing and deterministic time encoding; "
+                "no record-dependent vocabulary/category/scaler fit"
+            ),
+            "mechanism": (
+                "Opacus example-level DP-SGD"
+                if self.mode == "private"
+                else (
+                    "Opacus per-sample clipping with zero noise; non-private matched control"
+                    if self.mode == "clipped_no_noise"
+                    else "standard non-private SGD"
+                )
             ),
             "accountant": "rdp" if self.mode == "private" else None,
             "target_epsilon": self.target_epsilon,
@@ -82,7 +103,16 @@ class PrivacyState:
             "dataset_size": int(self.dataset_size),
             "batch_size_requested": int(self.batch_size),
             "sample_rate": float(self.sample_rate),
-            "sampling": "Poisson; sample_rate exactly matches Opacus DPDataLoader construction (1 / len(original_loader))",
+            "sampling": (
+                "Poisson; sample_rate exactly matches Opacus DPDataLoader "
+                "construction (1 / len(original_loader))"
+            ),
+            "secure_rng": SECURE_RNG,
+            "secure_rng_note": (
+                "Opacus secure_mode is disabled for the research experiment; "
+                "the accountant/mechanism is auditable, but this is not a "
+                "production cryptographic deployment claim."
+            ),
             "trace": self.trace,
         }
 
@@ -93,7 +123,7 @@ def _unwrap(model: nn.Module) -> nn.Module:
 
 def plain_state_dict(model: nn.Module) -> dict[str, torch.Tensor]:
     module = _unwrap(model)
-    return {k: v.detach().clone() for k, v in module.state_dict().items()}
+    return {key: value.detach().clone() for key, value in module.state_dict().items()}
 
 
 def load_plain_state_dict(model: nn.Module, state: dict[str, torch.Tensor]) -> None:
@@ -122,22 +152,38 @@ def make_training_state(
     sample_rate = 1.0 / float(len(loader))
 
     if mode == "nonprivate":
-        return PrivacyState(mode, None, model, optimizer, loader, n, requested_batch_size, sample_rate, None, float("inf"), 0.0, max_grad_norm, planned_steps)
+        return PrivacyState(
+            mode,
+            None,
+            model,
+            optimizer,
+            loader,
+            n,
+            requested_batch_size,
+            sample_rate,
+            None,
+            float("inf"),
+            0.0,
+            max_grad_norm,
+            planned_steps,
+        )
     if mode not in {"private", "clipped_no_noise"}:
         raise ValueError(f"unknown mode: {mode}")
 
     delta = delta_for_client(n) if mode == "private" else None
     noise_multiplier = 0.0
     if mode == "private":
-        noise_multiplier = float(get_noise_multiplier(
-            target_epsilon=target_epsilon,
-            target_delta=delta,
-            sample_rate=sample_rate,
-            steps=planned_steps,
-            accountant="rdp",
-        ))
+        noise_multiplier = float(
+            get_noise_multiplier(
+                target_epsilon=target_epsilon,
+                target_delta=delta,
+                sample_rate=sample_rate,
+                steps=planned_steps,
+                accountant="rdp",
+            )
+        )
 
-    engine = PrivacyEngine(accountant="rdp")
+    engine = PrivacyEngine(accountant="rdp", secure_mode=SECURE_RNG)
     private_model, private_optimizer, private_loader = engine.make_private(
         module=model,
         optimizer=optimizer,
