@@ -63,7 +63,10 @@ def fit_source_train(source_splits: Mapping[str, Mapping[str, pd.DataFrame]], ma
         "fit_scope": "source-city train partitions only",
         "cities": list(cities),
         "rows": int(len(train)),
-        "text_vocabulary": sorted(tfidf.vocabulary_.items(), key=lambda kv: kv[1]),
+        "text_vocabulary": [
+            [str(token), int(index)]
+            for token, index in sorted(tfidf.vocabulary_.items(), key=lambda kv: int(kv[1]))
+        ],
         "category_levels": [list(map(str, levels)) for levels in encoder.categories_],
         "numeric_mean": np.asarray(scaler.mean_, dtype=float).round(12).tolist(),
         "numeric_scale": np.asarray(scaler.scale_, dtype=float).round(12).tolist(),
