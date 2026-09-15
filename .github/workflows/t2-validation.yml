@@ -1,0 +1,71 @@
+name: T2 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/t2/**'
+      - 'tests/t2/**'
+      - 'scripts/t2/**'
+      - 'configs/t2/**'
+      - 'docs/t2/**'
+      - 'notebooks/T2_Diagnostic_Colab_Pro.ipynb'
+      - 'requirements-t2.txt'
+      - '.github/workflows/t2-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-t2.txt
+
+      - name: Install T2 dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-t2.txt
+
+      - name: T2 preflight
+        run: python scripts/t2/preflight.py
+
+      - name: T2 tests with Opacus enabled
+        run: python -m pytest tests/t2 -q
+
+      - name: Full repository test discovery
+        run: python -m pytest -q
+
+      - name: Ruff
+        run: python -m ruff check src/t2 tests/t2 scripts/t2
+
+      - name: Compile
+        run: python -m compileall -q src/t2 scripts/t2 tests/t2
+
+      - name: Notebook artifact check
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('notebooks/T2_Diagnostic_Colab_Pro.ipynb')
+          nb = json.loads(p.read_text(encoding='utf-8'))
+          bad = []
+          for i, cell in enumerate(nb.get('cells', [])):
+              if cell.get('cell_type') != 'code':
+                  continue
+              if cell.get('execution_count') is not None:
+                  bad.append((i, 'execution_count'))
+              if cell.get('outputs'):
+                  bad.append((i, 'outputs'))
+          if bad:
+              raise SystemExit(f'Notebook contains execution artifacts: {bad}')
+          print('NOTEBOOK_ARTIFACTS=PASS')
+          PY
