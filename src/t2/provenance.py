@@ -6,9 +6,9 @@ import os
 import platform
 import subprocess
 import uuid
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Mapping
 
 REQUIRED_MANIFEST_FIELDS = {
     "run_uuid", "git_sha", "git_dirty", "config_hash", "started_at_utc",
@@ -37,7 +37,7 @@ def git_state() -> tuple[str, bool]:
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
         dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
         return sha, dirty
-    except Exception:
+    except (FileNotFoundError, OSError, subprocess.CalledProcessError):
         return "UNKNOWN", True
 
 
@@ -48,7 +48,7 @@ def package_versions() -> dict[str, str]:
         try:
             module = __import__(name)
             out[name] = str(getattr(module, "__version__", "unknown"))
-        except Exception:
+        except ImportError:
             out[name] = "unavailable"
     return out
 
@@ -96,4 +96,4 @@ def validate_completed_manifest(manifest: Mapping[str, object]) -> None:
         raise ValueError("missing config/preprocessor fingerprint")
     privacy = manifest.get("privacy")
     if not isinstance(privacy, dict):
-        raise ValueError("privacy ledger missing")
+        raise TypeError("privacy ledger must be a mapping")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 import numpy as np
 
@@ -26,7 +26,7 @@ def privacy_transfer_penalty(private_run: Mapping[str, object], baseline_run: Ma
 def validate_run_record(run: Mapping[str, object]) -> None:
     manifest = run.get("manifest")
     if not isinstance(manifest, Mapping):
-        raise ValueError("run lacks manifest")
+        raise TypeError("run lacks manifest mapping")
     validate_completed_manifest(manifest)
     for key in ("external", "source_macro_mae_log1p_hours", "held_out_city", "seed", "mode"):
         if key not in run:

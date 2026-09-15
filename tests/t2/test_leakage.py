@@ -1,7 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from src.t2.preprocessing import FORBIDDEN_PRIMARY, CAT_COLS, NUM_COLS, TEXT_COL, fit_source_train
+from src.t2.preprocessing import (
+    CAT_COLS,
+    FORBIDDEN_PRIMARY,
+    NUM_COLS,
+    TEXT_COL,
+    fit_source_train,
+)
 
 
 def _frame(prefix: str, n: int = 20) -> pd.DataFrame:

@@ -43,7 +43,7 @@ def prepare_resolved_frame(frame: pd.DataFrame) -> pd.DataFrame:
 
 def frame_summary(frame: pd.DataFrame) -> dict[str, object]:
     return {
-        "rows": int(len(frame)),
+        "rows": len(frame),
         "created_date_min": frame["created_date"].min().isoformat() if len(frame) else None,
         "created_date_max": frame["created_date"].max().isoformat() if len(frame) else None,
         "resolution_hours_median": float(frame["resolution_hours"].median()) if len(frame) else None,

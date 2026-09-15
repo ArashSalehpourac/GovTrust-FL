@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class SourceTrainPreprocessor:
 
     @property
     def output_dim(self) -> int:
-        return int(len(self.transformer.get_feature_names_out()))
+        return len(self.transformer.get_feature_names_out())
 
     def transform(self, frame: pd.DataFrame) -> np.ndarray:
         x = self.transformer.transform(frame)
@@ -62,7 +62,7 @@ def fit_source_train(source_splits: Mapping[str, Mapping[str, pd.DataFrame]], ma
     canonical = {
         "fit_scope": "source-city train partitions only",
         "cities": list(cities),
-        "rows": int(len(train)),
+        "rows": len(train),
         "text_vocabulary": [
             [str(token), int(index)]
             for token, index in sorted(tfidf.vocabulary_.items(), key=lambda kv: int(kv[1]))
@@ -73,7 +73,7 @@ def fit_source_train(source_splits: Mapping[str, Mapping[str, pd.DataFrame]], ma
         "features": {"text": TEXT_COL, "categorical": CAT_COLS, "numeric": NUM_COLS},
     }
     fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    return SourceTrainPreprocessor(transformer, int(len(train)), cities, fingerprint)
+    return SourceTrainPreprocessor(transformer, len(train), cities, fingerprint)
 
 
 def category_oov_rate(preprocessor: SourceTrainPreprocessor, frame: pd.DataFrame) -> float:

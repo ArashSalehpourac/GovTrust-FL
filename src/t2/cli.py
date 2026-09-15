@@ -40,7 +40,7 @@ def cmd_plan(_: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace) -> int:
     paths = _city_paths(args.city)
     spec = loco_spec(args.held_out)
-    expected = set((*spec.source_cities, spec.held_out_city))
+    expected = {*spec.source_cities, spec.held_out_city}
     if set(paths) != expected:
         raise SystemExit(f"exactly these cities are required: {sorted(expected)}")
     for path in paths.values():
@@ -69,6 +69,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     source_hashes = {city: sha256_file(paths[city]) for city in spec.source_cities}
 
     external_called = False
+
     def external_loader() -> tuple[pd.DataFrame, str]:
         nonlocal external_called
         if external_called:

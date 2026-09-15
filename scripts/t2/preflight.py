@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.t2.config import diagnostic_plan  # noqa: E402
+from src.t2.config import diagnostic_plan
 
 
 def main() -> int:

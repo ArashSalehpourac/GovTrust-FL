@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 import numpy as np
 import pandas as pd
@@ -11,10 +11,15 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from .config import T2Config
 from .data import PRIMARY_TARGET
-from .evaluation import regression_metrics, macro_source_mae
+from .evaluation import macro_source_mae, regression_metrics
 from .model import ResolutionMLP, regression_loss
 from .preprocessing import SourceTrainPreprocessor
-from .privacy import PrivacyState, load_plain_state_dict, make_training_state, plain_state_dict
+from .privacy import (
+    PrivacyState,
+    load_plain_state_dict,
+    make_training_state,
+    plain_state_dict,
+)
 
 
 @dataclass

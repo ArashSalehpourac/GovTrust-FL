@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import math
 import time
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Mapping
 
 import pandas as pd
 import torch
@@ -14,7 +14,13 @@ from .config import T2Config
 from .data import frame_summary, prepare_resolved_frame
 from .federated import evaluate_external_after_selection, train_select
 from .folds import loco_spec, split_source_cities
-from .preprocessing import CAT_COLS, NUM_COLS, TEXT_COL, category_oov_rate, fit_source_train
+from .preprocessing import (
+    CAT_COLS,
+    NUM_COLS,
+    TEXT_COL,
+    category_oov_rate,
+    fit_source_train,
+)
 from .provenance import new_manifest_skeleton, sha256_file, validate_completed_manifest
 
 ExternalLoader = Callable[[], tuple[pd.DataFrame, str]]
@@ -66,7 +72,7 @@ def run_one(
     )
     manifest["input_sha256"] = dict(source_input_sha256)
     manifest["row_counts"] = {
-        city: {name: int(len(frame)) for name, frame in splits.items()}
+        city: {name: len(frame) for name, frame in splits.items()}
         for city, splits in source_splits.items()
     }
     manifest["date_ranges"] = _date_ranges(source_splits)
@@ -86,7 +92,7 @@ def run_one(
     manifest["input_sha256"][held_out_city] = external_sha256
     external_frame = prepare_resolved_frame(external_raw)
     external_metrics = evaluate_external_after_selection(selected, external_frame, preprocessor)
-    manifest["row_counts"][held_out_city] = {"external": int(len(external_frame))}
+    manifest["row_counts"][held_out_city] = {"external": len(external_frame)}
     manifest["date_ranges"][held_out_city] = {"external": frame_summary(external_frame)}
     manifest["features"]["external_category_oov_rate"] = category_oov_rate(preprocessor, external_frame)
     manifest["privacy"] = selected["privacy_by_city"]
