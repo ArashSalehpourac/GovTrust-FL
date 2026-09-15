@@ -1,0 +1,32 @@
+name: t2_diagnostic_validity_gate_v1
+primary_target: log1p_resolution_hours
+loss: smooth_l1
+algorithm: fedavg
+held_out_cities:
+  - boston
+  - los_angeles
+seeds: [0, 1, 2]
+privacy:
+  budgets: [infinity, 5, 1]
+  matched_clipped_no_noise_control: true
+  unit: service_request_row
+  accountant: rdp
+  delta_rule: min(1e-5, 0.1/N)
+training:
+  rounds: 20
+  local_epochs: 1
+  batch_size: 256
+  learning_rate: 0.02
+  checkpoint_patience: 5
+  stop_on_patience: false
+  checkpoint_selection: source_city_validation_macro_mae_only
+features:
+  text: descriptor
+  categorical: [category]
+  numeric: [hour, day_of_week, month, is_weekend]
+  excluded_primary: [city, agency, latitude, longitude, latitude_grid, longitude_grid, area, zip_code]
+gates:
+  allow_full_matrix: false
+  require_clean_git: true
+  require_complete_privacy_trace: true
+  require_realized_epsilon_tolerance: 0.05
