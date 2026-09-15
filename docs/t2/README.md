@@ -21,6 +21,8 @@ The first diagnostic uses a dedicated bounded public-data fetch and harmonizes d
 
 `scripts/t2/prepare_inputs.py` creates exactly 20,000 requests per city: the first 4,000 unique request IDs in chronological order from each year 2021-2025, after a deterministic bounded oversample from the official municipal APIs. Selection uses only `request_id`, `created_date`, and the asserted city identifier; it does not inspect status, `closed_date`, resolution time, or another outcome. The archive manifest stores the derived SHA256 for every city.
 
+Los Angeles changed its MyLA311 source/schema in 2025. Years 2021-2024 use the legacy Service Request datasets; 2025 uses the official `73a2-6ar5` MyLA311 Cases source and maps `casenumber`, `type`, `action_taken__c`, and `department_name__c` into the common T2 schema. That official source begins in March 2025, so the 2025 LA diagnostic sample is drawn from the available March-December source period; the coverage note is preserved in the input manifest.
+
 Each LOCO fold has three source cities and one held-out city. Source cities are split chronologically. The primary representation is completely data-independent: descriptor text uses fixed-dimensional feature hashing, category uses a separate fixed-dimensional feature hasher, and calendar variables use deterministic cyclical encoding. No vocabulary, category level, imputer, scaler, or other statistic is fit on municipal records. The primary feature set explicitly excludes raw city ID, agency, latitude/longitude, coordinate grids, area, and ZIP code.
 
 The executable runner invokes the held-out data loader only after source-only checkpoint selection finishes.
