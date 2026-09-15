@@ -109,6 +109,7 @@ def run_one(
         "local_epochs": config.local_epochs,
         "batch_size": config.batch_size,
         "learning_rate": config.learning_rate,
+        "device": selected["device"],
         "selection_scope": "source-city validation only",
         "dp_scope": "source-city training rows only",
     }

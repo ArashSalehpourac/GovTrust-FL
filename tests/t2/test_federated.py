@@ -2,7 +2,7 @@ import pandas as pd
 
 from src.t2.config import T2Config
 from src.t2.data import prepare_resolved_frame
-from src.t2.federated import train_select
+from src.t2.federated import resolve_device, train_select
 from src.t2.folds import chronological_split
 from src.t2.preprocessing import build_fixed_preprocessor
 
@@ -22,6 +22,10 @@ def _raw(city: str, n: int = 36) -> pd.DataFrame:
     )
 
 
+def test_cpu_device_resolution_is_explicit():
+    assert resolve_device("cpu").type == "cpu"
+
+
 def test_nonprivate_fedavg_point_regression_path_runs():
     prepared = {
         city: prepare_resolved_frame(_raw(city))
@@ -38,8 +42,10 @@ def test_nonprivate_fedavg_point_regression_path_runs():
         hidden_sizes=(8,),
         learning_rate=0.01,
         seed=3,
+        device="cpu",
     )
     result = train_select(splits, pre, cfg)
     assert 1 <= result["best_round"] <= 2
     assert result["source_macro_mae_log1p_hours"] >= 0
+    assert result["device"] == "cpu"
     assert set(result["internal_by_city"]) == {"a", "b", "c"}

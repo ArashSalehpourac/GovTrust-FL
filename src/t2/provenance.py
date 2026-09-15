@@ -11,38 +11,67 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REQUIRED_MANIFEST_FIELDS = {
-    "run_uuid", "git_sha", "git_dirty", "config_hash", "started_at_utc",
-    "completed_at_utc", "status", "fold", "held_out_city", "source_cities",
-    "input_sha256", "row_counts", "date_ranges", "preprocessor_fingerprint",
-    "features", "seed", "training", "privacy", "runtime_seconds", "hardware",
-    "packages", "command", "expected_outputs",
+    "run_uuid",
+    "git_sha",
+    "git_dirty",
+    "config_hash",
+    "started_at_utc",
+    "completed_at_utc",
+    "status",
+    "fold",
+    "held_out_city",
+    "source_cities",
+    "input_sha256",
+    "row_counts",
+    "date_ranges",
+    "preprocessor_fingerprint",
+    "features",
+    "seed",
+    "training",
+    "privacy",
+    "runtime_seconds",
+    "hardware",
+    "packages",
+    "command",
+    "expected_outputs",
 }
 
 
 def canonical_hash(value: object) -> str:
-    payload = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode()
     return hashlib.sha256(payload).hexdigest()
 
 
 def sha256_file(path: str | Path) -> str:
     h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+    with open(path, "rb") as file_handle:
+        for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
 
 
 def git_state() -> tuple[str, bool]:
     try:
-        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-        dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()
+        dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"], text=True
+            ).strip()
+        )
         return sha, dirty
     except (FileNotFoundError, OSError, subprocess.CalledProcessError):
         return "UNKNOWN", True
 
 
 def package_versions() -> dict[str, str]:
-    names = ["numpy", "pandas", "sklearn", "torch", "opacus"]
+    names = ["numpy", "pandas", "pyarrow", "sklearn", "torch", "opacus"]
     out: dict[str, str] = {"python": platform.python_version()}
     for name in names:
         try:
@@ -53,7 +82,34 @@ def package_versions() -> dict[str, str]:
     return out
 
 
-def new_manifest_skeleton(*, config: Mapping[str, object], fold: str, held_out_city: str, source_cities: list[str], command: str) -> dict[str, object]:
+def hardware_info() -> dict[str, object]:
+    import torch
+
+    cuda_available = bool(torch.cuda.is_available())
+    device_count = int(torch.cuda.device_count()) if cuda_available else 0
+    return {
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "cpu_count": os.cpu_count(),
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+        "torch_cuda_available": cuda_available,
+        "torch_cuda_version": torch.version.cuda,
+        "cuda_device_count": device_count,
+        "cuda_device_name_0": (
+            torch.cuda.get_device_name(0) if cuda_available and device_count > 0 else None
+        ),
+    }
+
+
+def new_manifest_skeleton(
+    *,
+    config: Mapping[str, object],
+    fold: str,
+    held_out_city: str,
+    source_cities: list[str],
+    command: str,
+) -> dict[str, object]:
     sha, dirty = git_state()
     return {
         "run_uuid": str(uuid.uuid4()),
@@ -75,7 +131,7 @@ def new_manifest_skeleton(*, config: Mapping[str, object], fold: str, held_out_c
         "training": {},
         "privacy": {},
         "runtime_seconds": None,
-        "hardware": {"platform": platform.platform(), "processor": platform.processor(), "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES")},
+        "hardware": hardware_info(),
         "packages": package_versions(),
         "command": command,
         "expected_outputs": ["checkpoint.pt", "run.json", "manifest.json"],
