@@ -33,7 +33,13 @@ def _city_paths(values: list[str]) -> dict[str, Path]:
 
 
 def cmd_plan(_: argparse.Namespace) -> int:
-    print(json.dumps(diagnostic_plan(), indent=2, default=lambda x: "inf" if x == float("inf") else x))
+    print(
+        json.dumps(
+            diagnostic_plan(),
+            indent=2,
+            default=lambda value: "inf" if value == float("inf") else value,
+        )
+    )
     return 0
 
 
@@ -61,12 +67,19 @@ def cmd_run(args: argparse.Namespace) -> int:
         checkpoint_patience=args.patience,
         stop_on_patience=False,
         epsilon_tolerance=args.epsilon_tolerance,
+        device=args.device,
     )
     config.validate()
 
     # Physically open/hash only source-city data before training/selection.
-    source_frames = {city: _read_frame(paths[city]) for city in spec.source_cities}
-    source_hashes = {city: sha256_file(paths[city]) for city in spec.source_cities}
+    source_frames = {
+        city: _read_frame(paths[city])
+        for city in spec.source_cities
+    }
+    source_hashes = {
+        city: sha256_file(paths[city])
+        for city in spec.source_cities
+    }
 
     external_called = False
 
@@ -87,16 +100,30 @@ def cmd_run(args: argparse.Namespace) -> int:
         output_dir=Path(args.output_dir),
         command=" ".join(sys.argv),
     )
-    print(json.dumps({
-        "run_uuid": run["manifest"]["run_uuid"],
-        "held_out_city": run["held_out_city"],
-        "mode": run["mode"],
-        "target_epsilon": "inf" if run["target_epsilon"] == float("inf") else run["target_epsilon"],
-        "best_round": run["selection"]["best_round"],
-        "source_macro_mae_log1p_hours": run["source_macro_mae_log1p_hours"],
-        "external_mae_log1p_hours": run["external"]["mae_log1p_hours"],
-        "output_dir": str(Path(args.output_dir) / str(run["manifest"]["run_uuid"])),
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "run_uuid": run["manifest"]["run_uuid"],
+                "held_out_city": run["held_out_city"],
+                "mode": run["mode"],
+                "target_epsilon": (
+                    "inf"
+                    if run["target_epsilon"] == float("inf")
+                    else run["target_epsilon"]
+                ),
+                "best_round": run["selection"]["best_round"],
+                "source_macro_mae_log1p_hours": run[
+                    "source_macro_mae_log1p_hours"
+                ],
+                "external_mae_log1p_hours": run["external"]["mae_log1p_hours"],
+                "device": run["manifest"]["training"]["device"],
+                "output_dir": str(
+                    Path(args.output_dir) / str(run["manifest"]["run_uuid"])
+                ),
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -107,9 +134,23 @@ def build_parser() -> argparse.ArgumentParser:
     plan.set_defaults(func=cmd_plan)
 
     run = sub.add_parser("run", help="run exactly one authorized configuration")
-    run.add_argument("--city", action="append", required=True, help="city=/path/to/file; repeat four times")
-    run.add_argument("--heldout", required=True, choices=["boston", "los_angeles"], help="diagnostic gate permits Boston/LA only")
-    run.add_argument("--mode", required=True, choices=["nonprivate", "private", "clipped_no_noise"])
+    run.add_argument(
+        "--city",
+        action="append",
+        required=True,
+        help="city=/path/to/file; repeat four times",
+    )
+    run.add_argument(
+        "--heldout",
+        required=True,
+        choices=["boston", "los_angeles"],
+        help="diagnostic gate permits Boston/LA only",
+    )
+    run.add_argument(
+        "--mode",
+        required=True,
+        choices=["nonprivate", "private", "clipped_no_noise"],
+    )
     run.add_argument("--epsilon", default="inf")
     run.add_argument("--seed", type=int, required=True, choices=[0, 1, 2])
     run.add_argument("--rounds", type=int, default=20)
@@ -119,6 +160,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--max-grad-norm", type=float, default=1.0)
     run.add_argument("--patience", type=int, default=5)
     run.add_argument("--epsilon-tolerance", type=float, default=0.05)
+    run.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     run.add_argument("--output-dir", required=True)
     run.set_defaults(func=cmd_run)
     return parser

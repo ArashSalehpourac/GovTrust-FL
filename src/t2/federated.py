@@ -34,6 +34,18 @@ class ClientBundle:
         return int(self.x.shape[0])
 
 
+def resolve_device(requested: str) -> torch.device:
+    if requested == "cpu":
+        return torch.device("cpu")
+    if requested == "cuda":
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA requested but unavailable")
+        return torch.device("cuda")
+    if requested != "auto":
+        raise ValueError(f"unknown device mode: {requested}")
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def _tensorize(frame: pd.DataFrame, pre: FixedPreprocessor) -> tuple[torch.Tensor, torch.Tensor]:
     x = torch.from_numpy(pre.transform(frame))
     y = torch.from_numpy(frame[PRIMARY_TARGET].to_numpy(dtype=np.float32))
@@ -42,11 +54,13 @@ def _tensorize(frame: pd.DataFrame, pre: FixedPreprocessor) -> tuple[torch.Tenso
 
 def _predict(model: torch.nn.Module, x: torch.Tensor, batch_size: int = 4096) -> np.ndarray:
     base = getattr(model, "_module", model)
+    device = next(base.parameters()).device
     base.eval()
     rows: list[np.ndarray] = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
-            rows.append(base(x[start : start + batch_size]).cpu().numpy())
+            batch = x[start : start + batch_size].to(device)
+            rows.append(base(batch).detach().cpu().numpy())
     return np.concatenate(rows) if rows else np.array([], dtype=np.float32)
 
 
@@ -79,8 +93,12 @@ def train_select(
     config.validate()
     torch.manual_seed(config.seed)
     np.random.seed(config.seed)
+    device = resolve_device(config.device)
+    if device.type == "cuda":
+        torch.cuda.manual_seed_all(config.seed)
+
     input_dim = preprocessor.output_dim
-    global_model = ResolutionMLP(input_dim, config.hidden_sizes)
+    global_model = ResolutionMLP(input_dim, config.hidden_sizes).to(device)
     global_state = plain_state_dict(global_model)
 
     clients: dict[str, ClientBundle] = {}
@@ -92,7 +110,7 @@ def train_select(
             shuffle=True,
             drop_last=False,
         )
-        local_model = ResolutionMLP(input_dim, config.hidden_sizes)
+        local_model = ResolutionMLP(input_dim, config.hidden_sizes).to(device)
         load_plain_state_dict(local_model, global_state)
         planned_steps = config.rounds * config.local_epochs * max(1, len(loader))
         privacy = make_training_state(
@@ -126,6 +144,8 @@ def train_select(
                 for batch_x, batch_y in state.loader:
                     if len(batch_x) == 0:
                         continue
+                    batch_x = batch_x.to(device)
+                    batch_y = batch_y.to(device)
                     state.optimizer.zero_grad(set_to_none=True)
                     pred = state.model(batch_x)
                     loss = regression_loss(pred, batch_y)
@@ -184,6 +204,7 @@ def train_select(
         "model": global_model,
         "best_state": best_state,
         "best_round": best_round,
+        "device": str(device),
         "source_val_best_macro_mae_log1p_hours": best_macro_val,
         "would_stop_round": would_stop_round,
         "history": history,

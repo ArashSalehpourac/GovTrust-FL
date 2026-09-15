@@ -1,4 +1,4 @@
-name: t2_diagnostic_validity_gate_v2
+name: t2_diagnostic_validity_gate_v3
 primary_target: log1p_resolution_hours
 loss: smooth_l1
 algorithm: fedavg
@@ -7,9 +7,16 @@ held_out_cities:
   - los_angeles
 seeds: [0, 1, 2]
 input:
-  required_stage: step2_harmonized
+  required_stage: bounded_public_api_fetch_harmonized_to_step2_schema
   forbid_historical_step3_cleaned: true
   deduplicate_by_request_id: true
+  diagnostic_extract:
+    years: [2021, 2022, 2023, 2024, 2025]
+    fetch_limit_per_year_per_city: 6000
+    rows_per_year_per_city: 4000
+    rows_per_city: 20000
+    selection_fields: [request_id, created_date, city]
+    selection_uses_outcome: false
 privacy:
   budgets: [infinity, 5, 1]
   matched_clipped_no_noise_control: true
@@ -27,6 +34,7 @@ training:
   checkpoint_patience: 5
   stop_on_patience: false
   checkpoint_selection: source_city_validation_macro_mae_only
+  device: auto
 features:
   representation: data_independent_hashing
   text: descriptor
@@ -42,3 +50,5 @@ gates:
   require_clean_git: true
   require_complete_privacy_trace: true
   require_realized_epsilon_tolerance: 0.05
+  require_input_sha256_match_for_resume: true
+  diagnostic_jobs: 24
