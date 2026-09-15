@@ -29,7 +29,9 @@ LA_DATASETS = {
     2022: "i5ke-k6by",
     2023: "4a4x-mna2",
     2024: "b7dx-7gc3",
-    2025: "h73f-gn57",
+    # Los Angeles changed the MyLA311 feed/schema in 2025.
+    # Official current dataset: "MyLA311 Cases March 2025 to December 2025".
+    2025: "73a2-6ar5",
 }
 BOSTON_RESOURCES = {
     2021: "f53ebccd-bc61-49f9-83db-625f209c95f5",
@@ -195,18 +197,43 @@ def _harmonize(raw: pd.DataFrame, city: str) -> pd.DataFrame:
         out["agency"] = _first_nonempty(raw, ["subject", "department"])
         area = _first_nonempty(raw, ["neighborhood", "ward"])
     elif city == "los_angeles":
-        mapping = {
-            "request_id": "srnumber",
-            "created_date": "createddate",
-            "closed_date": "closeddate",
-            "status": "status",
-            "category": "requesttype",
-            "descriptor": "actiontaken",
-            "agency": "owner",
-            "latitude": "latitude",
-            "longitude": "longitude",
-        }
-        area = _first_nonempty(raw, ["ncname", "nc", "cd"])
+        if "casenumber" in raw.columns:
+            # 2025+ MyLA311 Cases schema.
+            mapping = {
+                "request_id": "casenumber",
+                "created_date": "createddate",
+                "closed_date": "closeddate",
+                "status": "status",
+                "category": "type",
+                "descriptor": "action_taken__c",
+                "agency": "department_name__c",
+                "latitude": "latitude",
+                "longitude": "longitude",
+            }
+            area = _first_nonempty(
+                raw,
+                [
+                    "neighborhood_council_name__c",
+                    "neighborhood_council__c",
+                    "ncname",
+                    "nc",
+                    "cd",
+                ],
+            )
+        else:
+            # 2021-2024 legacy MyLA311 Service Request schema.
+            mapping = {
+                "request_id": "srnumber",
+                "created_date": "createddate",
+                "closed_date": "closeddate",
+                "status": "status",
+                "category": "requesttype",
+                "descriptor": "actiontaken",
+                "agency": "owner",
+                "latitude": "latitude",
+                "longitude": "longitude",
+            }
+            area = _first_nonempty(raw, ["ncname", "nc", "cd"])
     else:
         raise ValueError(f"unknown city: {city}")
 
@@ -224,6 +251,7 @@ def _fetch_harmonized_city(city: str) -> tuple[pd.DataFrame, dict[str, object]]:
     frames: list[pd.DataFrame] = []
     sources: list[dict[str, object]] = []
     for year in YEARS:
+        coverage_note: str | None = None
         if city == "nyc":
             raw = _socrata(
                 domain="data.cityofnewyork.us",
@@ -244,27 +272,42 @@ def _fetch_harmonized_city(city: str) -> tuple[pd.DataFrame, dict[str, object]]:
             source_id = CHICAGO_DATASET
         elif city == "los_angeles":
             source_id = LA_DATASETS[year]
-            raw = _socrata(
-                domain="data.lacity.org",
-                dataset_id=source_id,
-                date_field="createddate",
-                id_field="srnumber",
-                year=year,
-            )
+            if year == 2025:
+                raw = _socrata(
+                    domain="data.lacity.org",
+                    dataset_id=source_id,
+                    date_field="createddate",
+                    id_field="casenumber",
+                    year=year,
+                )
+                coverage_note = (
+                    "Official MyLA311 Cases 2025 source begins in March 2025; "
+                    "the 2025 diagnostic sample is therefore drawn from the available "
+                    "March-December 2025 source period."
+                )
+            else:
+                raw = _socrata(
+                    domain="data.lacity.org",
+                    dataset_id=source_id,
+                    date_field="createddate",
+                    id_field="srnumber",
+                    year=year,
+                )
         elif city == "boston":
             source_id = BOSTON_RESOURCES[year]
             raw = _boston(year)
         else:
             raise ValueError(f"unknown city: {city}")
         frames.append(_harmonize(raw, city))
-        sources.append(
-            {
-                "year": year,
-                "source_id": source_id,
-                "fetched_rows": len(raw),
-                "requested_limit": FETCH_PER_YEAR,
-            }
-        )
+        source_row: dict[str, object] = {
+            "year": year,
+            "source_id": source_id,
+            "fetched_rows": len(raw),
+            "requested_limit": FETCH_PER_YEAR,
+        }
+        if coverage_note is not None:
+            source_row["coverage_note"] = coverage_note
+        sources.append(source_row)
     return pd.concat(frames, ignore_index=True), {"yearly_sources": sources}
 
 
