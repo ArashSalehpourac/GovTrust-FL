@@ -54,6 +54,31 @@ def test_diagnostic_input_selection_is_outcome_independent():
     assert counts_first == {str(year): 2 for year in range(2021, 2026)}
 
 
+def test_los_angeles_2025_cases_schema_harmonizes():
+    module = _load_script("t2_prepare_inputs_la2025", "scripts/t2/prepare_inputs.py")
+    raw = pd.DataFrame(
+        {
+            "casenumber": ["01329606"],
+            "createddate": ["2025-03-01T12:00:00.000"],
+            "closeddate": ["2025-03-02T12:00:00.000"],
+            "status": ["Closed"],
+            "type": ["Bulky Items"],
+            "action_taken__c": ["Completed"],
+            "department_name__c": ["LASAN"],
+            "latitude": ["34.0"],
+            "longitude": ["-118.2"],
+        }
+    )
+    out = module._harmonize(raw, "los_angeles")
+    assert out.loc[0, "request_id"] == "01329606"
+    assert out.loc[0, "created_date"] == "2025-03-01T12:00:00.000"
+    assert out.loc[0, "closed_date"] == "2025-03-02T12:00:00.000"
+    assert out.loc[0, "category"] == "Bulky Items"
+    assert out.loc[0, "descriptor"] == "Completed"
+    assert out.loc[0, "agency"] == "LASAN"
+    assert out.loc[0, "city"] == "los_angeles"
+
+
 def test_matrix_launcher_is_nonexecuting_without_safety_switch(tmp_path, capsys):
     module = _load_script(
         "t2_run_matrix_test",
