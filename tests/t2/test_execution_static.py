@@ -15,8 +15,8 @@ def test_diagnostic_plan_has_24_jobs():
 def test_input_manifest_protocol_constant_matches_builder_and_launcher():
     prepare = Path("scripts/t2/prepare_inputs.py").read_text(encoding="utf-8")
     launcher = Path("scripts/t2/run_diagnostic_matrix.py").read_text(encoding="utf-8")
-    assert '"protocol": "t2_diagnostic_input_archive_v2"' in prepare
-    assert 'INPUT_PROTOCOL = "t2_diagnostic_input_archive_v2"' in launcher
+    assert '"protocol": "t2_diagnostic_input_archive_v3"' in prepare
+    assert 'INPUT_PROTOCOL = "t2_diagnostic_input_archive_v3"' in launcher
 
 
 def test_sha256_file_is_stable(tmp_path):

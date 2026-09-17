@@ -20,6 +20,7 @@ from src.t2.provenance import git_state, sha256_file
 YEARS = (2021, 2022, 2023, 2024, 2025)
 ROWS_PER_YEAR = 4_000
 FETCH_PER_YEAR = 6_000
+BOSTON_MAX_PAGES = 20
 REQUEST_TIMEOUT = (15, 180)
 
 NYC_DATASET = "erm2-nwe9"
@@ -109,36 +110,92 @@ def _extract_jina_json(text: str) -> dict[str, object]:
     return parsed
 
 
-def _boston(year: int) -> pd.DataFrame:
+def _boston_candidate_ids(records: list[dict[str, object]], year: int) -> set[str]:
+    """Return eligible request IDs using identity/date/year fields only."""
+
+    candidates: set[str] = set()
+    for record in records:
+        request_id = str(record.get("case_enquiry_id", "")).strip()
+        if not request_id:
+            continue
+        opened = pd.to_datetime(record.get("open_dt"), errors="coerce", utc=True)
+        if pd.isna(opened) or opened.year != year:
+            continue
+        candidates.add(request_id)
+    return candidates
+
+
+def _boston(year: int) -> tuple[pd.DataFrame, dict[str, object]]:
     resource_id = BOSTON_RESOURCES[year]
-    params: dict[str, object] = {
-        "resource_id": resource_id,
-        "limit": FETCH_PER_YEAR,
-        "offset": 0,
-        "sort": "open_dt asc,case_enquiry_id asc",
-    }
     url = "https://data.boston.gov/api/3/action/datastore_search"
-    try:
-        payload = _request_json(url, params)
-    except RuntimeError:
-        query = urlencode(params)
-        fallback = (
-            "https://r.jina.ai/http://data.boston.gov/api/3/action/"
-            f"datastore_search?{query}"
+    records: list[dict[str, object]] = []
+    pages: list[dict[str, object]] = []
+    candidate_ids: set[str] = set()
+
+    for page in range(BOSTON_MAX_PAGES):
+        offset = page * FETCH_PER_YEAR
+        params: dict[str, object] = {
+            "resource_id": resource_id,
+            "limit": FETCH_PER_YEAR,
+            "offset": offset,
+            "sort": "open_dt asc,case_enquiry_id asc",
+        }
+        try:
+            payload = _request_json(url, params)
+        except RuntimeError:
+            query = urlencode(params)
+            fallback = (
+                "https://r.jina.ai/http://data.boston.gov/api/3/action/"
+                f"datastore_search?{query}"
+            )
+            response = requests.get(
+                fallback,
+                timeout=REQUEST_TIMEOUT,
+                headers={"User-Agent": "GovTrust-FL-T2/1.0 research diagnostic"},
+            )
+            response.raise_for_status()
+            payload = _extract_jina_json(response.text)
+        if not isinstance(payload, dict) or not payload.get("success"):
+            raise RuntimeError(f"Boston CKAN request failed for {year} at offset {offset}")
+        result = payload.get("result")
+        if not isinstance(result, dict) or not isinstance(result.get("records"), list):
+            raise TypeError(f"unexpected Boston CKAN result for {year} at offset {offset}")
+
+        page_records = result["records"]
+        if not all(isinstance(record, dict) for record in page_records):
+            raise TypeError(f"unexpected Boston CKAN record at offset {offset}")
+        records.extend(page_records)
+        candidate_ids.update(_boston_candidate_ids(page_records, year))
+        pages.append(
+            {
+                "offset": offset,
+                "requested_limit": FETCH_PER_YEAR,
+                "fetched_rows": len(page_records),
+                "eligible_unique_ids_after_page": len(candidate_ids),
+                "sort": "open_dt asc,case_enquiry_id asc",
+            }
         )
-        response = requests.get(
-            fallback,
-            timeout=REQUEST_TIMEOUT,
-            headers={"User-Agent": "GovTrust-FL-T2/1.0 research diagnostic"},
+        if len(candidate_ids) >= ROWS_PER_YEAR:
+            break
+        if len(page_records) < FETCH_PER_YEAR:
+            raise RuntimeError(
+                f"Boston: year {year} source ended after {len(candidate_ids)} eligible "
+                f"identity/date rows; requires {ROWS_PER_YEAR}"
+            )
+    else:
+        raise RuntimeError(
+            f"Boston: year {year} exceeded maximum page guard ({BOSTON_MAX_PAGES}) "
+            f"with {len(candidate_ids)} eligible identity/date rows; "
+            f"requires {ROWS_PER_YEAR}"
         )
-        response.raise_for_status()
-        payload = _extract_jina_json(response.text)
-    if not isinstance(payload, dict) or not payload.get("success"):
-        raise RuntimeError(f"Boston CKAN request failed for {year}")
-    result = payload.get("result")
-    if not isinstance(result, dict) or not isinstance(result.get("records"), list):
-        raise TypeError(f"unexpected Boston CKAN result for {year}")
-    return pd.DataFrame(result["records"])
+
+    return pd.DataFrame(records), {
+        "resource_id": resource_id,
+        "page_size": FETCH_PER_YEAR,
+        "pages": pages,
+        "fetched_rows": len(records),
+        "eligible_unique_identity_date_rows": len(candidate_ids),
+    }
 
 
 def _series(frame: pd.DataFrame, column: str) -> pd.Series:
@@ -295,7 +352,7 @@ def _fetch_harmonized_city(city: str) -> tuple[pd.DataFrame, dict[str, object]]:
                 )
         elif city == "boston":
             source_id = BOSTON_RESOURCES[year]
-            raw = _boston(year)
+            raw, boston_fetch = _boston(year)
         else:
             raise ValueError(f"unknown city: {city}")
         frames.append(_harmonize(raw, city))
@@ -305,6 +362,8 @@ def _fetch_harmonized_city(city: str) -> tuple[pd.DataFrame, dict[str, object]]:
             "fetched_rows": len(raw),
             "requested_limit": FETCH_PER_YEAR,
         }
+        if city == "boston":
+            source_row.update(boston_fetch)
         if coverage_note is not None:
             source_row["coverage_note"] = coverage_note
         sources.append(source_row)
@@ -377,7 +436,7 @@ def prepare_archive(archive_dir: Path) -> dict[str, object]:
         }
 
     manifest = {
-        "protocol": "t2_diagnostic_input_archive_v2",
+        "protocol": "t2_diagnostic_input_archive_v3",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "git_sha": sha,
         "git_dirty": dirty,
@@ -389,6 +448,12 @@ def prepare_archive(archive_dir: Path) -> dict[str, object]:
             "uses_only": ["request_id", "created_date", "city"],
             "years": list(YEARS),
             "fetch_limit_per_year_per_city": FETCH_PER_YEAR,
+            "boston_pagination": {
+                "sort": "open_dt asc,case_enquiry_id asc",
+                "offsets": "0,6000,12000,...",
+                "max_pages_per_year": BOSTON_MAX_PAGES,
+                "stop_after_unique_request_ids_with_valid_open_dt_in_resource_year": ROWS_PER_YEAR,
+            },
             "rows_per_year_per_city": ROWS_PER_YEAR,
             "order": "created_date ascending, request_id ascending",
             "deduplicate_request_id_before_sampling": True,

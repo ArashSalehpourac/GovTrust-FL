@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 from src.t2.config import CITIES, T2Config, diagnostic_plan
 from src.t2.provenance import canonical_hash, git_state, sha256_file
 
-INPUT_PROTOCOL = "t2_diagnostic_input_archive_v2"
+INPUT_PROTOCOL = "t2_diagnostic_input_archive_v3"
 
 
 def _epsilon(value: object) -> float:
