@@ -1,0 +1,1539 @@
+{
+  "generated_utc": "2026-09-17T14:00:53Z",
+  "timestamp_semantics": "created_date/closed_date are naive timestamps in the source's local time as published; no timezone conversion applied.",
+  "cities": {
+    "nyc": {
+      "harmonized_file": "nyc_2021_2025_harmonized.parquet",
+      "sha256": "ac8aca055f5c649596ab180d1761d303f89f55c5ab33b20e140bbdee3df4d923",
+      "file_size_bytes": 471130029,
+      "rows": 16727374,
+      "raw_rows_in_total": 16727374,
+      "row_accounting_balanced": true,
+      "generated_utc": "2026-09-17T13:53:57Z",
+      "canonical_columns": [
+        "request_id",
+        "created_date",
+        "closed_date",
+        "status",
+        "category",
+        "descriptor",
+        "agency",
+        "latitude",
+        "longitude",
+        "area",
+        "city",
+        "source_year"
+      ],
+      "schema": {
+        "request_id": "string",
+        "created_date": "timestamp[us]",
+        "closed_date": "timestamp[us]",
+        "status": "string",
+        "category": "string",
+        "descriptor": "string",
+        "agency": "string",
+        "latitude": "double",
+        "longitude": "double",
+        "area": "string",
+        "city": "string",
+        "source_year": "int16"
+      },
+      "inputs": [
+        {
+          "snapshot_file": "NYC_2021.jsonl.gz",
+          "sha256": "f2d04146079f3d519ee0dbae6226c2419f4f61e843079c91120f53afe9b63520",
+          "dataset_id": "erm2-nwe9",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "NYC_2022.jsonl.gz",
+          "sha256": "69d6fff21ebd345e93c11f1152ad29bfa47120f7bfae784efd1befe2e403b9a6",
+          "dataset_id": "erm2-nwe9",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "NYC_2023.jsonl.gz",
+          "sha256": "2816961661a9240c4349ea514aef5daac342b555612bd05fb599a697190a2860",
+          "dataset_id": "erm2-nwe9",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "NYC_2024.jsonl.gz",
+          "sha256": "85503c1b0642c9aa59513c19e52fa7046e044c59bda76c93946772818d573a7f",
+          "dataset_id": "erm2-nwe9",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "NYC_2025.jsonl.gz",
+          "sha256": "54d9643e386fbc82257b9d82828823f7d94685361b642b22da3a8e469f765b22",
+          "dataset_id": "erm2-nwe9",
+          "coverage_note": null
+        }
+      ],
+      "per_year": [
+        {
+          "city": "nyc",
+          "year": 2021,
+          "raw_rows_in": 3220882,
+          "harmonized_rows_out": 3220882,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 3189291,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 31591,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 32848,
+          "agency_missing": 0,
+          "latitude_missing": 71686,
+          "longitude_missing": 71686,
+          "area_missing": 6962,
+          "status_value_counts": {
+            "Closed": 3174881,
+            "In Progress": 27518,
+            "Pending": 13981,
+            "Open": 2547,
+            "Started": 558,
+            "Assigned": 1303,
+            "Unspecified": 94
+          },
+          "field_mapping": {
+            "request_id": [
+              "unique_key"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "complaint_type"
+            ],
+            "descriptor": [
+              "descriptor"
+            ],
+            "agency": [
+              "agency"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_board",
+              "borough"
+            ]
+          }
+        },
+        {
+          "city": "nyc",
+          "year": 2022,
+          "raw_rows_in": 3169960,
+          "harmonized_rows_out": 3169960,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 3144710,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 25250,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 35332,
+          "agency_missing": 0,
+          "latitude_missing": 50583,
+          "longitude_missing": 50583,
+          "area_missing": 0,
+          "status_value_counts": {
+            "Closed": 3132925,
+            "In Progress": 21096,
+            "Pending": 9544,
+            "Open": 2444,
+            "Assigned": 2522,
+            "Started": 464,
+            "Unspecified": 965
+          },
+          "field_mapping": {
+            "request_id": [
+              "unique_key"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "complaint_type"
+            ],
+            "descriptor": [
+              "descriptor"
+            ],
+            "agency": [
+              "agency"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_board",
+              "borough"
+            ]
+          }
+        },
+        {
+          "city": "nyc",
+          "year": 2023,
+          "raw_rows_in": 3224723,
+          "harmonized_rows_out": 3224723,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 3162700,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 62023,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 39318,
+          "agency_missing": 0,
+          "latitude_missing": 48579,
+          "longitude_missing": 48579,
+          "area_missing": 0,
+          "status_value_counts": {
+            "Closed": 3176077,
+            "In Progress": 38413,
+            "Pending": 4803,
+            "Open": 2068,
+            "Assigned": 1477,
+            "Unspecified": 1414,
+            "Started": 471
+          },
+          "field_mapping": {
+            "request_id": [
+              "unique_key"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "complaint_type"
+            ],
+            "descriptor": [
+              "descriptor"
+            ],
+            "agency": [
+              "agency"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_board",
+              "borough"
+            ]
+          }
+        },
+        {
+          "city": "nyc",
+          "year": 2024,
+          "raw_rows_in": 3456769,
+          "harmonized_rows_out": 3456769,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 3393323,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 63446,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 39524,
+          "agency_missing": 0,
+          "latitude_missing": 52735,
+          "longitude_missing": 52735,
+          "area_missing": 0,
+          "status_value_counts": {
+            "Closed": 3417868,
+            "In Progress": 26236,
+            "Pending": 3673,
+            "Open": 5901,
+            "Assigned": 2350,
+            "Started": 642,
+            "Unspecified": 99
+          },
+          "field_mapping": {
+            "request_id": [
+              "unique_key"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "complaint_type"
+            ],
+            "descriptor": [
+              "descriptor"
+            ],
+            "agency": [
+              "agency"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_board",
+              "borough"
+            ]
+          }
+        },
+        {
+          "city": "nyc",
+          "year": 2025,
+          "raw_rows_in": 3655040,
+          "harmonized_rows_out": 3655040,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 3599200,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 55840,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 8320,
+          "agency_missing": 0,
+          "latitude_missing": 50148,
+          "longitude_missing": 50148,
+          "area_missing": 0,
+          "status_value_counts": {
+            "Closed": 3601024,
+            "In Progress": 38826,
+            "Open": 6081,
+            "Assigned": 3439,
+            "Pending": 4320,
+            "Started": 1179,
+            "Unspecified": 171
+          },
+          "field_mapping": {
+            "request_id": [
+              "unique_key"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "complaint_type"
+            ],
+            "descriptor": [
+              "descriptor"
+            ],
+            "agency": [
+              "agency"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_board",
+              "borough"
+            ]
+          }
+        }
+      ],
+      "network_used": false
+    },
+    "chicago": {
+      "harmonized_file": "chicago_2021_2025_harmonized.parquet",
+      "sha256": "f8168a4a33e502b1141df1ec1e0df6a04c6f8a097fcdd9cc905249a700660814",
+      "file_size_bytes": 200869136,
+      "rows": 9271262,
+      "raw_rows_in_total": 9271262,
+      "row_accounting_balanced": true,
+      "generated_utc": "2026-09-17T13:02:54Z",
+      "canonical_columns": [
+        "request_id",
+        "created_date",
+        "closed_date",
+        "status",
+        "category",
+        "descriptor",
+        "agency",
+        "latitude",
+        "longitude",
+        "area",
+        "city",
+        "source_year"
+      ],
+      "schema": {
+        "request_id": "string",
+        "created_date": "timestamp[us]",
+        "closed_date": "timestamp[us]",
+        "status": "string",
+        "category": "string",
+        "descriptor": "string",
+        "agency": "string",
+        "latitude": "double",
+        "longitude": "double",
+        "area": "string",
+        "city": "string",
+        "source_year": "int16"
+      },
+      "inputs": [
+        {
+          "snapshot_file": "CHICAGO_2021.jsonl.gz",
+          "sha256": "778adf14ccf43a354da93d7130ac4b3ce49914927bfa764cb28978fe19e04006",
+          "dataset_id": "v6vf-nfxy",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "CHICAGO_2022.jsonl.gz",
+          "sha256": "72547a4f0a27617dda93b06784fc0fb3bc3b10efb6738ab6579ffe7036e2db94",
+          "dataset_id": "v6vf-nfxy",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "CHICAGO_2023.jsonl.gz",
+          "sha256": "d1b7a606bfccb39aed3cec5a1c5868c54b532beabfe64cfd816b4e044b48e3cc",
+          "dataset_id": "v6vf-nfxy",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "CHICAGO_2024.jsonl.gz",
+          "sha256": "34d9d519b04066d38d465ead1a576e428ff80cd5dcb313ee4aa07ce89722ab27",
+          "dataset_id": "v6vf-nfxy",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "CHICAGO_2025.jsonl.gz",
+          "sha256": "80e58ba6ee3c026a221bbab120665c8db184b2c9810fef8e9fe0b91b1485fa87",
+          "dataset_id": "v6vf-nfxy",
+          "coverage_note": null
+        }
+      ],
+      "per_year": [
+        {
+          "city": "chicago",
+          "year": 2021,
+          "raw_rows_in": 1831871,
+          "harmonized_rows_out": 1831871,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1822521,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 9350,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1709,
+          "longitude_missing": 1709,
+          "area_missing": 2422,
+          "status_value_counts": {
+            "Completed": 1807381,
+            "Canceled": 15140,
+            "Open": 9350
+          },
+          "field_mapping": {
+            "request_id": [
+              "sr_number"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "sr_type"
+            ],
+            "descriptor": [
+              "sr_short_code"
+            ],
+            "agency": [
+              "owner_department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_area",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "chicago",
+          "year": 2022,
+          "raw_rows_in": 1783858,
+          "harmonized_rows_out": 1783858,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1776844,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 7014,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1201,
+          "longitude_missing": 1201,
+          "area_missing": 1886,
+          "status_value_counts": {
+            "Completed": 1756967,
+            "Canceled": 19877,
+            "Open": 7014
+          },
+          "field_mapping": {
+            "request_id": [
+              "sr_number"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "sr_type"
+            ],
+            "descriptor": [
+              "sr_short_code"
+            ],
+            "agency": [
+              "owner_department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_area",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "chicago",
+          "year": 2023,
+          "raw_rows_in": 1781009,
+          "harmonized_rows_out": 1781009,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1768858,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 12151,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 641,
+          "longitude_missing": 641,
+          "area_missing": 1205,
+          "status_value_counts": {
+            "Completed": 1743382,
+            "Canceled": 25475,
+            "Open": 12151,
+            "Closed": 1
+          },
+          "field_mapping": {
+            "request_id": [
+              "sr_number"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "sr_type"
+            ],
+            "descriptor": [
+              "sr_short_code"
+            ],
+            "agency": [
+              "owner_department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_area",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "chicago",
+          "year": 2024,
+          "raw_rows_in": 1913929,
+          "harmonized_rows_out": 1913929,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1889164,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 24765,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1062,
+          "longitude_missing": 1062,
+          "area_missing": 1650,
+          "status_value_counts": {
+            "Completed": 1849648,
+            "Canceled": 39516,
+            "Open": 24765
+          },
+          "field_mapping": {
+            "request_id": [
+              "sr_number"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "sr_type"
+            ],
+            "descriptor": [
+              "sr_short_code"
+            ],
+            "agency": [
+              "owner_department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_area",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "chicago",
+          "year": 2025,
+          "raw_rows_in": 1960595,
+          "harmonized_rows_out": 1960595,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1926007,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 34588,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1135,
+          "longitude_missing": 1135,
+          "area_missing": 1809,
+          "status_value_counts": {
+            "Completed": 1892236,
+            "Open": 34588,
+            "Canceled": 33771
+          },
+          "field_mapping": {
+            "request_id": [
+              "sr_number"
+            ],
+            "created_date": [
+              "created_date"
+            ],
+            "closed_date": [
+              "closed_date"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "sr_type"
+            ],
+            "descriptor": [
+              "sr_short_code"
+            ],
+            "agency": [
+              "owner_department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "community_area",
+              "ward"
+            ]
+          }
+        }
+      ],
+      "network_used": false
+    },
+    "boston": {
+      "harmonized_file": "boston_2021_2025_harmonized.parquet",
+      "sha256": "2fac3e9a1ef1d349e55c2093a9b8413b096ee35c2725e55af01d15b79a16de5a",
+      "file_size_bytes": 37140077,
+      "rows": 1433236,
+      "raw_rows_in_total": 1433236,
+      "row_accounting_balanced": true,
+      "generated_utc": "2026-09-17T12:20:15Z",
+      "canonical_columns": [
+        "request_id",
+        "created_date",
+        "closed_date",
+        "status",
+        "category",
+        "descriptor",
+        "agency",
+        "latitude",
+        "longitude",
+        "area",
+        "city",
+        "source_year"
+      ],
+      "schema": {
+        "request_id": "string",
+        "created_date": "timestamp[us]",
+        "closed_date": "timestamp[us]",
+        "status": "string",
+        "category": "string",
+        "descriptor": "string",
+        "agency": "string",
+        "latitude": "double",
+        "longitude": "double",
+        "area": "string",
+        "city": "string",
+        "source_year": "int16"
+      },
+      "inputs": [
+        {
+          "snapshot_file": "BOSTON_2021.jsonl.gz",
+          "sha256": "00df9da14016bafcdd038e145f75e6a5b2557ed59c3fbea6c286dea8e0079231",
+          "dataset_id": "f53ebccd-bc61-49f9-83db-625f209c95f5",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "BOSTON_2022.jsonl.gz",
+          "sha256": "958376ab64a9dc86787a2effc96935cfee7d4246240ddc2b3e495b8f5e205f0f",
+          "dataset_id": "81a7b022-f8fc-4da5-80e4-b160058ca207",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "BOSTON_2023.jsonl.gz",
+          "sha256": "ec2cde40d29c7f4877c49370fa4b293ce8b0da4585c0f339e3a4fb664461e05a",
+          "dataset_id": "e6013a93-1321-4f2a-bf91-8d8a02f1e62f",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "BOSTON_2024.jsonl.gz",
+          "sha256": "ac6cbac8276bcbf53c43785ccc76942b817f1563aef5d06a511470de340b0756",
+          "dataset_id": "dff4d804-5031-443a-8409-8344efd0e5c8",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "BOSTON_2025.jsonl.gz",
+          "sha256": "c7e31798456a36009014b89d794dfd79a419ccac290fa568fdd5e74a116be0e1",
+          "dataset_id": "9d7c2214-4709-478a-a2e8-fb2020a5bb94",
+          "coverage_note": null
+        }
+      ],
+      "per_year": [
+        {
+          "city": "boston",
+          "year": 2021,
+          "raw_rows_in": 269665,
+          "harmonized_rows_out": 269665,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 255798,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 13867,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1144,
+          "longitude_missing": 1144,
+          "area_missing": 2015,
+          "status_value_counts": {
+            "Closed": 255798,
+            "Open": 13867
+          },
+          "field_mapping": {
+            "request_id": [
+              "case_enquiry_id"
+            ],
+            "created_date": [
+              "open_dt"
+            ],
+            "closed_date": [
+              "closed_dt"
+            ],
+            "status": [
+              "case_status"
+            ],
+            "category": [
+              "reason"
+            ],
+            "descriptor": [
+              "type"
+            ],
+            "agency": [
+              "subject",
+              "department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "neighborhood",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "boston",
+          "year": 2022,
+          "raw_rows_in": 272931,
+          "harmonized_rows_out": 272931,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 256449,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 16482,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 874,
+          "longitude_missing": 874,
+          "area_missing": 1644,
+          "status_value_counts": {
+            "Closed": 256449,
+            "Open": 16482
+          },
+          "field_mapping": {
+            "request_id": [
+              "case_enquiry_id"
+            ],
+            "created_date": [
+              "open_dt"
+            ],
+            "closed_date": [
+              "closed_dt"
+            ],
+            "status": [
+              "case_status"
+            ],
+            "category": [
+              "reason"
+            ],
+            "descriptor": [
+              "type"
+            ],
+            "agency": [
+              "subject",
+              "department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "neighborhood",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "boston",
+          "year": 2023,
+          "raw_rows_in": 307791,
+          "harmonized_rows_out": 307791,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 289099,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 18692,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1371,
+          "longitude_missing": 1371,
+          "area_missing": 2049,
+          "status_value_counts": {
+            "Closed": 289101,
+            "Open": 18690
+          },
+          "field_mapping": {
+            "request_id": [
+              "case_enquiry_id"
+            ],
+            "created_date": [
+              "open_dt"
+            ],
+            "closed_date": [
+              "closed_dt"
+            ],
+            "status": [
+              "case_status"
+            ],
+            "category": [
+              "reason"
+            ],
+            "descriptor": [
+              "type"
+            ],
+            "agency": [
+              "subject",
+              "department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "neighborhood",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "boston",
+          "year": 2024,
+          "raw_rows_in": 306756,
+          "harmonized_rows_out": 306756,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 256831,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 49925,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1233,
+          "longitude_missing": 1233,
+          "area_missing": 1806,
+          "status_value_counts": {
+            "Closed": 256831,
+            "Open": 49925
+          },
+          "field_mapping": {
+            "request_id": [
+              "case_enquiry_id"
+            ],
+            "created_date": [
+              "open_dt"
+            ],
+            "closed_date": [
+              "closed_dt"
+            ],
+            "status": [
+              "case_status"
+            ],
+            "category": [
+              "reason"
+            ],
+            "descriptor": [
+              "type"
+            ],
+            "agency": [
+              "subject",
+              "department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "neighborhood",
+              "ward"
+            ]
+          }
+        },
+        {
+          "city": "boston",
+          "year": 2025,
+          "raw_rows_in": 276093,
+          "harmonized_rows_out": 276093,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 205841,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 70252,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1352,
+          "longitude_missing": 1352,
+          "area_missing": 1699,
+          "status_value_counts": {
+            "Closed": 205841,
+            "Open": 70252
+          },
+          "field_mapping": {
+            "request_id": [
+              "case_enquiry_id"
+            ],
+            "created_date": [
+              "open_dt"
+            ],
+            "closed_date": [
+              "closed_dt"
+            ],
+            "status": [
+              "case_status"
+            ],
+            "category": [
+              "reason"
+            ],
+            "descriptor": [
+              "type"
+            ],
+            "agency": [
+              "subject",
+              "department"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "neighborhood",
+              "ward"
+            ]
+          }
+        }
+      ],
+      "network_used": false
+    },
+    "los_angeles": {
+      "harmonized_file": "los_angeles_2021_2025_harmonized.parquet",
+      "sha256": "1e8776a9badc736c3dacd0f957d99c0b019538d416efb5f2ee65b937159e1c40",
+      "file_size_bytes": 208059165,
+      "rows": 7307448,
+      "raw_rows_in_total": 7307448,
+      "row_accounting_balanced": true,
+      "generated_utc": "2026-09-17T14:00:53Z",
+      "canonical_columns": [
+        "request_id",
+        "created_date",
+        "closed_date",
+        "status",
+        "category",
+        "descriptor",
+        "agency",
+        "latitude",
+        "longitude",
+        "area",
+        "city",
+        "source_year"
+      ],
+      "schema": {
+        "request_id": "string",
+        "created_date": "timestamp[us]",
+        "closed_date": "timestamp[us]",
+        "status": "string",
+        "category": "string",
+        "descriptor": "string",
+        "agency": "string",
+        "latitude": "double",
+        "longitude": "double",
+        "area": "string",
+        "city": "string",
+        "source_year": "int16"
+      },
+      "inputs": [
+        {
+          "snapshot_file": "LOS_ANGELES_2021.jsonl.gz",
+          "sha256": "3a31f5882941bedd983fa7ed64f503fa5c770cebeb1e59604403c0cc0e82fdb9",
+          "dataset_id": "97z7-y5bt",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "LOS_ANGELES_2022.jsonl.gz",
+          "sha256": "83bc13fcf510fda872c962cf5a35d7a96942f3084e32d679fe3b22caff94d542",
+          "dataset_id": "i5ke-k6by",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "LOS_ANGELES_2023.jsonl.gz",
+          "sha256": "dd869a18f0597643d458ed5e668fdea67085e2fd131487be632ba0e146f887d7",
+          "dataset_id": "4a4x-mna2",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "LOS_ANGELES_2024.jsonl.gz",
+          "sha256": "515c5d67cda5101c86fb5c12e57db7bfa4ba9b62c96b7adbdfd95d15181c694f",
+          "dataset_id": "b7dx-7gc3",
+          "coverage_note": null
+        },
+        {
+          "snapshot_file": "LOS_ANGELES_2025.jsonl.gz",
+          "sha256": "999acc9eef796023b9b9eac7e1c21501f257efc47cb2ee03c739123f9d7d3d4f",
+          "dataset_id": "73a2-6ar5",
+          "coverage_note": "Official Los Angeles 2025 source (73a2-6ar5, 'MyLA311 Cases March 2025 to December 2025') covers March-December 2025 only; January-February 2025 is not published in this dataset. The 2025 schema also differs from 2021-2024 (casenumber/type/action_taken__c/department_name__c/geolocation__*__s)."
+        }
+      ],
+      "per_year": [
+        {
+          "city": "los_angeles",
+          "year": 2021,
+          "raw_rows_in": 1451557,
+          "harmonized_rows_out": 1451557,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1449530,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 2027,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 3,
+          "latitude_missing": 693,
+          "longitude_missing": 693,
+          "area_missing": 700,
+          "status_value_counts": {
+            "Closed": 1398199,
+            "Cancelled": 50800,
+            "Pending": 310,
+            "Open": 1468,
+            "Referred Out": 778,
+            "Forward": 2
+          },
+          "field_mapping": {
+            "request_id": [
+              "srnumber"
+            ],
+            "created_date": [
+              "createddate"
+            ],
+            "closed_date": [
+              "closeddate"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "requesttype"
+            ],
+            "descriptor": [
+              "actiontaken"
+            ],
+            "agency": [
+              "owner"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "ncname",
+              "nc",
+              "cd"
+            ]
+          }
+        },
+        {
+          "city": "los_angeles",
+          "year": 2022,
+          "raw_rows_in": 1327883,
+          "harmonized_rows_out": 1327883,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1316174,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 11709,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 1,
+          "latitude_missing": 431,
+          "longitude_missing": 431,
+          "area_missing": 434,
+          "status_value_counts": {
+            "Closed": 1272498,
+            "Cancelled": 46865,
+            "Open": 5253,
+            "Referred Out": 1047,
+            "Pending": 2183,
+            "Forward": 37
+          },
+          "field_mapping": {
+            "request_id": [
+              "srnumber"
+            ],
+            "created_date": [
+              "createddate"
+            ],
+            "closed_date": [
+              "closeddate"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "requesttype"
+            ],
+            "descriptor": [
+              "actiontaken"
+            ],
+            "agency": [
+              "owner"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "ncname",
+              "nc",
+              "cd"
+            ]
+          }
+        },
+        {
+          "city": "los_angeles",
+          "year": 2023,
+          "raw_rows_in": 1345291,
+          "harmonized_rows_out": 1345291,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1312627,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 32664,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 0,
+          "latitude_missing": 1478,
+          "longitude_missing": 1478,
+          "area_missing": 1478,
+          "status_value_counts": {
+            "Closed": 1264320,
+            "Cancelled": 49984,
+            "Pending": 13257,
+            "Open": 15759,
+            "Referred Out": 1646,
+            "Forward": 325
+          },
+          "field_mapping": {
+            "request_id": [
+              "srnumber"
+            ],
+            "created_date": [
+              "createddate"
+            ],
+            "closed_date": [
+              "closeddate"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "requesttype"
+            ],
+            "descriptor": [
+              "actiontaken"
+            ],
+            "agency": [
+              "owner"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "ncname",
+              "nc",
+              "cd"
+            ]
+          }
+        },
+        {
+          "city": "los_angeles",
+          "year": 2024,
+          "raw_rows_in": 1442347,
+          "harmonized_rows_out": 1442347,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1373040,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 69307,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 0,
+          "agency_missing": 2,
+          "latitude_missing": 1388,
+          "longitude_missing": 1388,
+          "area_missing": 1386,
+          "status_value_counts": {
+            "Closed": 1311534,
+            "Cancelled": 61979,
+            "Pending": 42950,
+            "Open": 24040,
+            "Referred Out": 1643,
+            "Forward": 201
+          },
+          "field_mapping": {
+            "request_id": [
+              "srnumber"
+            ],
+            "created_date": [
+              "createddate"
+            ],
+            "closed_date": [
+              "closeddate"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "requesttype"
+            ],
+            "descriptor": [
+              "actiontaken"
+            ],
+            "agency": [
+              "owner"
+            ],
+            "latitude": [
+              "latitude"
+            ],
+            "longitude": [
+              "longitude"
+            ],
+            "area": [
+              "ncname",
+              "nc",
+              "cd"
+            ]
+          }
+        },
+        {
+          "city": "los_angeles",
+          "year": 2025,
+          "raw_rows_in": 1740370,
+          "harmonized_rows_out": 1740370,
+          "rows_dropped": 0,
+          "request_id_missing": 0,
+          "request_id_duplicate_rows": 0,
+          "created_date_unparsed": 0,
+          "created_date_missing": 0,
+          "created_date_outside_source_year": 0,
+          "closed_date_present": 1633569,
+          "closed_date_unparsed": 0,
+          "closed_date_missing": 106801,
+          "status_missing": 0,
+          "category_missing": 0,
+          "descriptor_missing": 810979,
+          "agency_missing": 43,
+          "latitude_missing": 110363,
+          "longitude_missing": 110363,
+          "area_missing": 138696,
+          "status_value_counts": {
+            "Closed": 1474936,
+            "Reported": 83419,
+            "Cancelled": 66496,
+            "Workorder Created": 72589,
+            "New": 15177,
+            "In Progress": 13590,
+            "Closed Ext-Referred": 8718,
+            "Potential Duplicate": 5109,
+            "Duplicate Confirm": 334,
+            "Inspection Required": 2
+          },
+          "field_mapping": {
+            "request_id": [
+              "casenumber"
+            ],
+            "created_date": [
+              "createddate"
+            ],
+            "closed_date": [
+              "closeddate"
+            ],
+            "status": [
+              "status"
+            ],
+            "category": [
+              "type"
+            ],
+            "descriptor": [
+              "action_taken__c"
+            ],
+            "agency": [
+              "department_name__c"
+            ],
+            "latitude": [
+              "geolocation__latitude__s"
+            ],
+            "longitude": [
+              "geolocation__longitude__s"
+            ],
+            "area": [
+              "locator_sr_neigborhood_council_1",
+              "locator_sr_neigborhood_council",
+              "locator_council_district"
+            ]
+          }
+        }
+      ],
+      "network_used": false
+    }
+  }
+}

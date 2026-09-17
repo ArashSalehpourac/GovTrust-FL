@@ -11,7 +11,7 @@ generated or stub metrics are **not** valid experimental inputs or evidence.
 |---|---|---|---|
 | 1 | `acquire_raw.py` | yes (official portals only) | `01_Raw_Official/CITY_YYYY.jsonl.gz` + `.sha256` + `.provenance.json` |
 | 2 | `audit_raw.py` | no | `03_Manifests_and_Checksums/RAW_MANIFEST.json`, `RAW_SHA256SUMS.txt`, `RAW_AUDIT_REPORT.md` |
-| 3 | `harmonize_from_raw.py` | no | `02_Harmonized/<city>_2021_2025_harmonized.parquet` + `.sha256`, `HARMONIZATION_MANIFEST.json`, `ROW_ACCOUNTING.csv`, `HARMONIZED_SHA256SUMS.txt` |
+| 3 | `harmonize_from_raw.py` | no | `02_Harmonized/<city>_2021_2025_harmonized.parquet` + `.sha256` + `.manifest.json`, `HARMONIZATION_MANIFEST.json` (aggregated from the per-city `.manifest.json` sidecars), `ROW_ACCOUNTING.csv`, `HARMONIZED_SHA256SUMS.txt` |
 | 4 | `report_gates.py` | no | `03_Manifests_and_Checksums/GATE_REPORT.txt` |
 
 ```bash

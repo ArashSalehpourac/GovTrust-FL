@@ -241,12 +241,6 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     man_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest_path = man_dir / "HARMONIZATION_MANIFEST.json"
-    manifest: dict[str, object] = (
-        json.loads(manifest_path.read_text()) if manifest_path.exists() else {"cities": {}}
-    )
-    cities_meta: dict[str, object] = manifest["cities"]  # type: ignore[assignment]
-
     for city in args.city or CITIES:
         target = out_dir / f"{city}_2021_2025_harmonized.parquet"
         if target.exists():
@@ -284,7 +278,7 @@ def main() -> None:
         digest = sha256_file(target)
         (out_dir / f"{target.name}.sha256").write_text(f"{digest}  {target.name}\n")
         total_in = sum(int(r["raw_rows_in"]) for r in accounting_rows)
-        cities_meta[city] = {
+        city_meta = {
             "harmonized_file": target.name,
             "sha256": digest,
             "file_size_bytes": target.stat().st_size,
@@ -299,14 +293,23 @@ def main() -> None:
             "per_year": accounting_rows,
             "network_used": False,
         }
+        (out_dir / f"{target.name}.manifest.json").write_text(json.dumps(city_meta, indent=2) + "\n")
         print(f"{city}: wrote {target.name} rows={rows_written} sha256={digest}", flush=True)
 
-    manifest["generated_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    manifest["timestamp_semantics"] = (
-        "created_date/closed_date are naive timestamps in the source's local time as "
-        "published; no timezone conversion applied."
-    )
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    cities_meta: dict[str, dict[str, object]] = {}
+    for city in CITIES:
+        meta_path = out_dir / f"{city}_2021_2025_harmonized.parquet.manifest.json"
+        if meta_path.exists():
+            cities_meta[city] = json.loads(meta_path.read_text())
+    manifest: dict[str, object] = {
+        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp_semantics": (
+            "created_date/closed_date are naive timestamps in the source's local time as "
+            "published; no timezone conversion applied."
+        ),
+        "cities": cities_meta,
+    }
+    (man_dir / "HARMONIZATION_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
     rows = []
     for meta in cities_meta.values():
