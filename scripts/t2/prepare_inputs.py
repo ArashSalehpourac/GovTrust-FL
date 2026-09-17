@@ -113,13 +113,17 @@ def _extract_jina_json(text: str) -> dict[str, object]:
 def _boston_candidate_ids(records: list[dict[str, object]], year: int) -> set[str]:
     """Return eligible request IDs using identity/date/year fields only."""
 
+    opened = pd.to_datetime(
+        pd.Series([record.get("open_dt") for record in records]),
+        errors="coerce",
+        utc=True,
+    )
     candidates: set[str] = set()
-    for record in records:
+    for record, parsed_opened in zip(records, opened, strict=True):
         request_id = str(record.get("case_enquiry_id", "")).strip()
         if not request_id:
             continue
-        opened = pd.to_datetime(record.get("open_dt"), errors="coerce", utc=True)
-        if pd.isna(opened) or opened.year != year:
+        if pd.isna(parsed_opened) or parsed_opened.year != year:
             continue
         candidates.add(request_id)
     return candidates
