@@ -133,3 +133,61 @@ Current:
 > Only mark 20/20 when `CHICAGO_2025_LOCAL_GATE=PASS`, `SOURCE_STABILITY_GATE=PASS`, `CHICAGO_2025_DRIVE_ARCHIVE_GATE=PASS`, and final Drive `CHICAGO_2025_raw.csv` independently exists with matching size/hash.
 >
 > After 20/20, update Slack, ClickUp, GitHub Issue #3 and Draft PR #4 once for the gate transition. Then proceed to the 20-file manifest/checksum audit and harmonization from frozen Drive snapshots only. Do not train yet. Do not generate or infer scientific results. No synthetic/stub metrics. Do not merge PR #4 unless explicitly instructed. Preserve all provenance and the Chicago interrupted staging artifacts.
+
+
+## Continuation update — raw gate closed at 20/20
+
+Live verification after the saved handoff established that Chicago 2025 cell 84 completed successfully.
+
+Chicago 2025 final:
+- rows: `1,960,595`
+- min/max created: `2025-01-01T00:01:27.000` / `2025-12-31T23:59:32.000`
+- null request IDs: `0`
+- duplicate request IDs: `0`
+- size: `386,539,997` bytes
+- MD5: `0746a1e8ce60897e72dcbd479e4c773e`
+- SHA256: `30d6344d7db65aa9ac126a05e6e2adde5aa1f15c4db0e8df1628bab592dffd21`
+- final Drive ID: `1ebAXhIZrBAYYnlYx6Rldm2Oot7fj_Ivb`
+- `CHICAGO_2025_LOCAL_GATE=PASS`
+- `SOURCE_STABILITY_GATE=PASS`
+- `CHICAGO_2025_DRIVE_ARCHIVE_GATE=PASS`
+
+Current global state:
+- `FINAL_RAW_FILES_ACCEPTED=20/20`
+- `RAW_DATA_GATE=PASS`
+- `SCIENTIFIC_TRAINING_STARTED=NO`
+- `REAL_RESULTS_GENERATED=NO`
+
+The one-time 20/20 transition was posted to Slack, ClickUp, Issue #3 and PR #4.
+Do not post a second 20/20 transition.
+
+A central raw manifest/checksum register was created in Drive
+`03_Manifests_and_Checksums`:
+- title: `T2_RAW_MANIFEST_CHECKSUMS_20_FINAL_2026-09-20`
+- Sheet ID: `1cNFTji5qSQBe9QRs0DsqcmFkVqRk0FDjdLY7i1vlMT0`
+
+It records all 20 final raw Drive IDs, sizes, source IDs, date bounds,
+null/duplicate ID audits, SHA256 values, schemas, and provenance constraints.
+
+Critical repo correction:
+- The older `scripts/t2/prepare_inputs.py` performs a fresh bounded API fetch and is
+  not authorized for the current harmonization stage.
+- Added `configs/t2/frozen_raw_manifest.json`.
+- Added `src/t2/harmonize_frozen.py`.
+- Added `scripts/t2/harmonize_frozen_raw.py`.
+- Added `tests/t2/test_harmonize_frozen.py`.
+- Updated `docs/t2/README.md` to require frozen-raw harmonization.
+- Harmonization is row-preserving and refuses raw size/SHA mismatch, schema drift,
+  Boston datastore-only `_id`, or date/ID audit mismatches.
+- Output target remains Drive `02_Harmonized` ID
+  `1xWsfDOzhNmn8VZyjHCzb7H_wCn5mD0gp`.
+
+At this update:
+- `RAW_MANIFEST_GATE=PASS`
+- `HARMONIZATION_GATE=NOT_STARTED`
+- `HARMONIZED_HASH_GATE=NOT_STARTED`
+- `CHRONOLOGY_LEAKAGE_DATA_QUALITY_GATE=NOT_STARTED`
+- `READY_FOR_EXPERIMENT_DESIGN_REVIEW=NO`
+- training remains blocked.
+
+PR #4 remains draft/unmerged.
