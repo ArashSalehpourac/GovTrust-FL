@@ -18,15 +18,27 @@ From the existing Colab Drive mount, the authorized command is:
 ```bash
 python scripts/t2/harmonize_frozen_raw.py \
   --raw-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/01_Raw_Official" \
-  --output-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized"
+  --output-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized" \
+  --metadata-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums"
 ```
 
-The command writes one Parquet artifact per city-year plus
-`T2_HARMONIZED_MANIFEST.json` and `T2_HARMONIZED_CHECKSUMS_SHA256.txt`.
+The command writes exactly one Parquet artifact per city-year into
+`02_Harmonized`. It writes `T2_HARMONIZED_MANIFEST.json` and
+`T2_HARMONIZED_CHECKSUMS_SHA256.txt` into `03_Manifests_and_Checksums`.
 Existing harmonized outputs are never overwritten.
 
-**Do not run training yet.** Harmonized hashes, chronology/leakage/data-quality
-gates, and the experiment-design review must pass first.
+After harmonization, run the deterministic data audit:
+
+```bash
+python scripts/t2/audit_harmonized.py \
+  --harmonized-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized" \
+  --harmonized-manifest "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_MANIFEST.json" \
+  --report "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_AUDIT.json"
+```
+
+**Do not run training yet.** A PASS from this structural/data audit is necessary
+but not sufficient: the target-isolation/leakage review and experiment-design
+review must also pass first.
 
 `scripts/t2/prepare_inputs.py` is retained only for the earlier bounded-API
 diagnostic design. Its live-API fetch path is **not authorized for the current
