@@ -244,7 +244,7 @@ def execute_matrix(input_dir: Path, output_dir: Path, device: str) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Execute/resume the frozen 24-job T2 Boston/LA diagnostic matrix"
+        description="Preview the retired 24-job T2 Boston/LA diagnostic matrix; execution is disabled"
     )
     parser.add_argument("--input-dir", required=True)
     parser.add_argument("--output-dir", required=True)
@@ -252,7 +252,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--execute",
         action="store_true",
-        help="required safety switch; without it only the frozen plan is printed",
+        help="retained for archival compatibility; execution is fail-closed",
     )
     return parser
 
@@ -261,7 +261,7 @@ def main() -> int:
     args = build_parser().parse_args()
     if not args.execute:
         print(json.dumps(diagnostic_plan(), indent=2, default=str))
-        print("No training started. Re-run with --execute to authorize the frozen matrix.")
+        print("No training started. Legacy diagnostic execution is retired; --execute is disabled.")
         return 0
     if LEGACY_DIAGNOSTIC_EXECUTION_RETIRED:
         raise SystemExit(
