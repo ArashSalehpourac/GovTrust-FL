@@ -34,6 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(ROOT / "configs" / "t2" / "frozen_raw_manifest.json"),
         help="Frozen raw manifest JSON committed with the execution code",
     )
+    parser.add_argument(
+        "--metadata-dir",
+        default=None,
+        help="Directory for harmonized manifest/checksum sidecars; defaults to output-dir",
+    )
     parser.add_argument("--chunksize", type=int, default=100_000)
     return parser
 
@@ -44,6 +49,11 @@ def main() -> int:
         raw_dir=Path(args.raw_dir).expanduser().resolve(),
         output_dir=Path(args.output_dir).expanduser().resolve(),
         manifest_path=Path(args.manifest).expanduser().resolve(),
+        metadata_dir=(
+            Path(args.metadata_dir).expanduser().resolve()
+            if args.metadata_dir is not None
+            else None
+        ),
         chunksize=args.chunksize,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
