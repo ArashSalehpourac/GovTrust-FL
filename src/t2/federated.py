@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader, Dataset
 
 from .compact import CompactRegressionDataset
 from .config import T2Config
-from .data import PRIMARY_TARGET
 from .evaluation import macro_source_mae, regression_metrics
 from .model import ResolutionMLP, regression_loss
 from .preprocessing import FixedPreprocessor
