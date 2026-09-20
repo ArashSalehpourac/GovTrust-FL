@@ -55,27 +55,40 @@ class FixedPreprocessor:
     def output_dim(self) -> int:
         return self.text_hash_dim + self.category_hash_dim + len(NUMERIC_OUTPUT_FEATURES)
 
-    def transform(self, frame: pd.DataFrame) -> np.ndarray:
-        required = {TEXT_COL, *CAT_COLS, *NUM_COLS}
-        missing = required - set(frame.columns)
-        if missing:
-            raise ValueError(f"missing primary feature columns: {sorted(missing)}")
+    @property
+    def category_output_dim(self) -> int:
+        return self.text_hash_dim + self.category_hash_dim
 
-        descriptor = frame[TEXT_COL].fillna("").astype(str)
-        text = self.text_hasher.transform(descriptor)
+    def transform_category_values(self, values: pd.Series) -> np.ndarray:
+        """Transform intake-category values without inspecting any fitted state."""
 
-        category_tokens = [
-            [f"category={value}"]
-            for value in frame[CAT_COLS[0]].fillna("UNK").astype(str)
-        ]
+        clean = values.fillna("UNK").astype(str)
+        text = self.text_hasher.transform(clean)
+        category_tokens = [[f"category={value}"] for value in clean]
         category = self.category_hasher.transform(category_tokens)
+        if hasattr(text, "toarray"):
+            text = text.toarray()
+        if hasattr(category, "toarray"):
+            category = category.toarray()
+        return np.concatenate(
+            [
+                np.asarray(text, dtype=np.float32),
+                np.asarray(category, dtype=np.float32),
+            ],
+            axis=1,
+        )
 
+    def transform_numeric(self, frame: pd.DataFrame) -> np.ndarray:
+        """Transform deterministic calendar inputs only."""
+
+        missing = set(NUM_COLS) - set(frame.columns)
+        if missing:
+            raise ValueError(f"missing numeric feature columns: {sorted(missing)}")
         hour = pd.to_numeric(frame["hour"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
         day = pd.to_numeric(frame["day_of_week"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
         month = pd.to_numeric(frame["month"], errors="coerce").fillna(1.0).to_numpy(dtype=float)
         weekend = pd.to_numeric(frame["is_weekend"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
-
-        numeric = np.column_stack(
+        return np.column_stack(
             [
                 np.sin(2.0 * np.pi * hour / 24.0),
                 np.cos(2.0 * np.pi * hour / 24.0),
@@ -87,18 +100,14 @@ class FixedPreprocessor:
             ]
         ).astype(np.float32)
 
-        if hasattr(text, "toarray"):
-            text = text.toarray()
-        if hasattr(category, "toarray"):
-            category = category.toarray()
-        return np.concatenate(
-            [
-                np.asarray(text, dtype=np.float32),
-                np.asarray(category, dtype=np.float32),
-                numeric,
-            ],
-            axis=1,
-        )
+    def transform(self, frame: pd.DataFrame) -> np.ndarray:
+        required = {TEXT_COL, *CAT_COLS, *NUM_COLS}
+        missing = required - set(frame.columns)
+        if missing:
+            raise ValueError(f"missing primary feature columns: {sorted(missing)}")
+        category = self.transform_category_values(frame[TEXT_COL])
+        numeric = self.transform_numeric(frame)
+        return np.concatenate([category, numeric], axis=1)
 
 
 def build_fixed_preprocessor(
