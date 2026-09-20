@@ -21,6 +21,7 @@ YEARS = (2021, 2022, 2023, 2024, 2025)
 ROWS_PER_YEAR = 4_000
 FETCH_PER_YEAR = 6_000
 REQUEST_TIMEOUT = (15, 180)
+LEGACY_BOUNDED_INPUT_BUILDER_RETIRED = True
 
 NYC_DATASET = "erm2-nwe9"
 CHICAGO_DATASET = "v6vf-nfxy"
@@ -350,6 +351,11 @@ def _select(frame: pd.DataFrame, city: str) -> tuple[pd.DataFrame, dict[str, int
 
 
 def prepare_archive(archive_dir: Path) -> dict[str, object]:
+    if LEGACY_BOUNDED_INPUT_BUILDER_RETIRED:
+        raise RuntimeError(
+            "Legacy bounded 20k-per-city diagnostic input builder is retired. "
+            "Use only the frozen full-data harmonized corpus after pre-training gates pass."
+        )
     sha, dirty = git_state()
     if sha == "UNKNOWN" or dirty:
         raise RuntimeError("T2 input archive must be prepared from a clean Git checkout")
@@ -412,6 +418,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    if LEGACY_BOUNDED_INPUT_BUILDER_RETIRED:
+        raise SystemExit(
+            "Legacy bounded diagnostic input builder is retired; no inputs generated."
+        )
     args = build_parser().parse_args()
     manifest = prepare_archive(Path(args.archive_dir).expanduser().resolve())
     print(json.dumps(manifest, indent=2, sort_keys=True))
