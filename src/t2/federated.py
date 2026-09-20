@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -27,6 +28,8 @@ class ClientBundle:
     city: str
     dataset: Dataset
     privacy: PrivacyState
+    steps_per_round: int
+    loader_batches: int
 
     @property
     def n(self) -> int:
@@ -104,8 +107,33 @@ def _average_states(states: list[tuple[dict[str, torch.Tensor], int]]) -> dict[s
     return out
 
 
+def _step_budget(loader_batches: int, config: T2Config) -> tuple[int, int]:
+    if loader_batches < 1:
+        raise ValueError("client loader must have at least one batch")
+    if config.training_budget == "full_local_epochs":
+        steps_per_round = config.local_epochs * loader_batches
+    else:
+        target_total_steps = max(
+            1,
+            math.ceil(config.total_effective_epochs * loader_batches),
+        )
+        steps_per_round = max(1, math.ceil(target_total_steps / config.rounds))
+    return steps_per_round, steps_per_round * config.rounds
+
+
+def _take_nonempty_batch(iterator, loader):
+    while True:
+        try:
+            batch_x, batch_y = next(iterator)
+        except StopIteration:
+            iterator = iter(loader)
+            batch_x, batch_y = next(iterator)
+        if len(batch_x) > 0:
+            return iterator, batch_x, batch_y
+
+
 def train_select(
-    source_splits: Mapping[str, Mapping[str, pd.DataFrame]],
+    source_splits: Mapping[str, Mapping[str, pd.DataFrame | Dataset]],
     preprocessor: FixedPreprocessor,
     config: T2Config,
 ) -> dict[str, object]:
@@ -139,7 +167,7 @@ def train_select(
         )
         local_model = ResolutionMLP(input_dim, config.hidden_sizes).to(device)
         load_plain_state_dict(local_model, global_state)
-        planned_steps = config.rounds * config.local_epochs * max(1, len(loader))
+        steps_per_round, planned_steps = _step_budget(len(loader), config)
         privacy = make_training_state(
             model=local_model,
             loader=loader,
@@ -149,7 +177,13 @@ def train_select(
             max_grad_norm=config.max_grad_norm,
             planned_steps=planned_steps,
         )
-        clients[city] = ClientBundle(city, train_dataset, privacy)
+        clients[city] = ClientBundle(
+            city,
+            train_dataset,
+            privacy,
+            steps_per_round,
+            len(loader),
+        )
 
     best_state = copy.deepcopy(global_state)
     best_macro_val = float("inf")
@@ -167,19 +201,21 @@ def train_select(
             load_plain_state_dict(state.model, global_state)
             state.model.train()
             losses: list[float] = []
-            for _ in range(config.local_epochs):
-                for batch_x, batch_y in state.loader:
-                    if len(batch_x) == 0:
-                        continue
-                    batch_x = batch_x.to(device)
-                    batch_y = batch_y.to(device)
-                    state.optimizer.zero_grad(set_to_none=True)
-                    pred = state.model(batch_x)
-                    loss = regression_loss(pred, batch_y)
-                    loss.backward()
-                    state.optimizer.step()
-                    state.steps_taken += 1
-                    losses.append(float(loss.detach().cpu()))
+            iterator = iter(state.loader)
+            for _ in range(bundle.steps_per_round):
+                iterator, batch_x, batch_y = _take_nonempty_batch(
+                    iterator,
+                    state.loader,
+                )
+                batch_x = batch_x.to(device)
+                batch_y = batch_y.to(device)
+                state.optimizer.zero_grad(set_to_none=True)
+                pred = state.model(batch_x)
+                loss = regression_loss(pred, batch_y)
+                loss.backward()
+                state.optimizer.step()
+                state.steps_taken += 1
+                losses.append(float(loss.detach().cpu()))
             updates.append((plain_state_dict(state.model), bundle.n))
             local_losses[city] = float(np.mean(losses)) if losses else float("nan")
             privacy_round[city] = state.snapshot(round_number)
@@ -238,12 +274,23 @@ def train_select(
         "internal_by_city": internal_by_city,
         "source_macro_mae_log1p_hours": macro_source_mae(internal_by_city),
         "privacy_by_city": privacy_reports,
+        "training_budget_by_city": {
+            city: {
+                "loader_batches": bundle.loader_batches,
+                "steps_per_round": bundle.steps_per_round,
+                "planned_steps": bundle.privacy.planned_steps,
+                "planned_effective_epochs": (
+                    bundle.privacy.planned_steps / bundle.loader_batches
+                ),
+            }
+            for city, bundle in clients.items()
+        },
     }
 
 
 def evaluate_external_after_selection(
     selected: Mapping[str, object],
-    external_frame: pd.DataFrame,
+    external_frame: pd.DataFrame | Dataset,
     preprocessor: FixedPreprocessor,
 ) -> dict[str, float]:
     """External outcomes enter only after the source-only checkpoint is frozen."""
