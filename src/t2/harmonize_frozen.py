@@ -112,6 +112,22 @@ def harmonize_chunk(frame: pd.DataFrame, city: str) -> pd.DataFrame:
     else:
         raise ValueError(f"unsupported city: {city}")
 
+    missing_targets = [
+        target
+        for target, aliases in spec.items()
+        if not any(_norm(alias) in cmap for alias in aliases)
+    ]
+    if missing_targets:
+        raise ValueError(
+            f"{city}: frozen raw schema missing mapped fields for {missing_targets}"
+        )
+    if not any(_norm(alias) in cmap for alias in area):
+        raise ValueError(f"{city}: frozen raw schema missing every configured area field")
+    if city == "boston" and not any(
+        _norm(alias) in cmap for alias in ["subject", "department"]
+    ):
+        raise ValueError("boston: frozen raw schema missing subject/department agency fields")
+
     for target, aliases in spec.items():
         out[target] = _pick(frame, cmap, aliases)
     out["area"] = _coalesce(frame, cmap, area)
