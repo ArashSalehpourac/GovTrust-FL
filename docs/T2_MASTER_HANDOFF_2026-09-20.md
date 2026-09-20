@@ -239,3 +239,46 @@ experiment-design reviews define the frozen-harmonized training input contract.
 Preserve Boston's 30-column authoritative CSV rule, LA 2025 partial coverage,
 Chicago interrupted staging artifacts, and full provenance. PR #4 remains
 draft/unmerged.
+
+
+## Harmonization attempt 1 — Boston mixed-timestamp parser fix
+
+The first frozen-raw harmonization attempt used code SHA
+`64de331fde4554c9af1bdcd306acb903dcff590f`.
+
+Observed derived state after failure:
+- NYC 2021-2025 harmonized Parquet outputs completed.
+- Chicago 2021-2025 harmonized Parquet outputs completed.
+- `BOSTON_2021_harmonized.parquet.tmp` remained incomplete.
+- No final harmonized manifest/checksum sidecars were written.
+- Frozen raw files were not modified.
+- The harmonization gate remains unpassed pending a clean complete rerun.
+
+Root cause reproduced against frozen Boston 2021:
+- raw size `156,065,195` bytes
+- SHA256 `f22ab1e845dde506c685b8f27c265d9cd4ca276a08d0d116eaef85139777b3c2`
+- 30 authoritative CSV columns
+- null IDs `0`
+- duplicate IDs `0`
+- default pandas mixed-string timestamp inference falsely coerced
+  `136,362 / 269,665` `open_dt` values to `NaT`
+- `format="mixed"` yields 0 invalid created timestamps and the frozen
+  Boston 2021 bounds.
+
+Fix:
+- frozen harmonizer created-date parsing uses `format="mixed"`
+- harmonized audit created/closed parsing uses `format="mixed"`
+- downstream resolved-frame created/closed parsing uses `format="mixed"`
+- regression tests cover mixed Boston timestamp formats
+
+Validated fix SHA:
+`1d6e49fcbb91e1a99a46fd7788e304bb91f874d7`
+
+GitHub Actions T2 Validation:
+`35532001133` — PASS.
+
+Recovery policy:
+quarantine, do not reuse or silently delete, the failed-run derived artifacts;
+keep the canonical `02_Harmonized` folder ID unchanged; regenerate all 20
+outputs from the untouched frozen raw snapshots under the single validated fix
+SHA; no training.
