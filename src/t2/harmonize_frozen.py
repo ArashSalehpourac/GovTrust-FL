@@ -202,7 +202,7 @@ def harmonize_snapshot(
                 else:
                     seen.add(key)
 
-            created = pd.to_datetime(harmonized["created_date"], errors="coerce", utc=True)
+            created = pd.to_datetime(\n                harmonized["created_date"], errors="coerce", utc=True, format="mixed"\n            )
             invalid_created += int(created.isna().sum())
             valid = created.dropna()
             if not valid.empty:
