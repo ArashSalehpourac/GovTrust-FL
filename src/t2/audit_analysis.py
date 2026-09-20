@@ -350,6 +350,7 @@ def audit_analysis_frames(
         "closed_date",
         "resolution_hours",
         PRIMARY_TARGET,
+        "descriptor",
     }
     if primary_inputs & forbidden_outcome_inputs:
         blockers.append("primary predictor set contains an outcome/post-outcome field")
@@ -396,9 +397,15 @@ def audit_analysis_frames(
             "exclude_missing_or_invalid_closed_date_in_analysis_frame": True,
             "exclude_negative_resolution_duration_in_analysis_frame": True,
             "descriptor_missingness_causes_row_exclusion": False,
-            "descriptor_missing_encoding": "empty string into fixed HashingVectorizer",
+            "descriptor_primary_predictor": False,
+            "descriptor_policy": (
+                "retained in harmonized data for audit only; excluded from primary "
+                "predictors because Los Angeles descriptor is sourced from ActionTaken"
+            ),
             "category_missingness_causes_row_exclusion": False,
-            "category_missing_encoding": "UNK token into fixed FeatureHasher",
+            "category_missing_encoding": (
+                "empty lexical text plus UNK identity token under fixed hashing"
+            ),
             "no_duration_outlier_threshold_exclusion": True,
         },
         "chronology_policy": {
