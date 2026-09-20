@@ -14,7 +14,7 @@ def prepare_resolved_frame(frame: pd.DataFrame) -> pd.DataFrame:
     chronological order and does not fit any data-dependent parameter.
     """
 
-    required = {"request_id", "created_date", "closed_date", "category", "descriptor"}
+    required = {"request_id", "created_date", "closed_date", "category"}
     missing = required - set(frame.columns)
     if missing:
         raise ValueError(f"missing required columns: {sorted(missing)}")
@@ -49,7 +49,8 @@ def prepare_resolved_frame(frame: pd.DataFrame) -> pd.DataFrame:
     out["month"] = dt.dt.month.astype(np.float32)
     out["is_weekend"] = (dt.dt.dayofweek >= 5).astype(np.float32)
     out["category"] = out["category"].fillna("UNK").astype(str)
-    out["descriptor"] = out["descriptor"].fillna("").astype(str)
+    if "descriptor" in out.columns:
+        out["descriptor"] = out["descriptor"].fillna("").astype(str)
     return out.sort_values(["created_date", "request_id"], kind="stable").reset_index(drop=True)
 
 
