@@ -7,8 +7,9 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, Dataset
 
+from .compact import CompactRegressionDataset
 from .config import T2Config
 from .data import PRIMARY_TARGET
 from .evaluation import macro_source_mae, regression_metrics
@@ -25,13 +26,12 @@ from .privacy import (
 @dataclass
 class ClientBundle:
     city: str
-    x: torch.Tensor
-    y: torch.Tensor
+    dataset: Dataset
     privacy: PrivacyState
 
     @property
     def n(self) -> int:
-        return int(self.x.shape[0])
+        return int(len(self.dataset))
 
 
 def resolve_device(requested: str) -> torch.device:
@@ -46,27 +46,49 @@ def resolve_device(requested: str) -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def _tensorize(frame: pd.DataFrame, pre: FixedPreprocessor) -> tuple[torch.Tensor, torch.Tensor]:
-    x = torch.from_numpy(pre.transform(frame))
-    y = torch.from_numpy(frame[PRIMARY_TARGET].to_numpy(dtype=np.float32))
-    return x, y
+def _as_dataset(
+    frame_or_dataset: pd.DataFrame | Dataset,
+    pre: FixedPreprocessor,
+) -> Dataset:
+    if isinstance(frame_or_dataset, pd.DataFrame):
+        return CompactRegressionDataset.from_frame(frame_or_dataset, pre)
+    if isinstance(frame_or_dataset, Dataset):
+        return frame_or_dataset
+    raise TypeError("split must be a pandas DataFrame or torch Dataset")
 
 
-def _predict(model: torch.nn.Module, x: torch.Tensor, batch_size: int = 4096) -> np.ndarray:
+def _predict_dataset(
+    model: torch.nn.Module,
+    dataset: Dataset,
+    batch_size: int = 4096,
+) -> tuple[np.ndarray, np.ndarray]:
     base = getattr(model, "_module", model)
     device = next(base.parameters()).device
     base.eval()
-    rows: list[np.ndarray] = []
+    pred_rows: list[np.ndarray] = []
+    target_rows: list[np.ndarray] = []
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, drop_last=False)
     with torch.no_grad():
-        for start in range(0, len(x), batch_size):
-            batch = x[start : start + batch_size].to(device)
-            rows.append(base(batch).detach().cpu().numpy())
-    return np.concatenate(rows) if rows else np.array([], dtype=np.float32)
+        for batch_x, batch_y in loader:
+            pred_rows.append(base(batch_x.to(device)).detach().cpu().numpy())
+            target_rows.append(batch_y.detach().cpu().numpy())
+    predictions = (
+        np.concatenate(pred_rows) if pred_rows else np.array([], dtype=np.float32)
+    )
+    targets = (
+        np.concatenate(target_rows) if target_rows else np.array([], dtype=np.float32)
+    )
+    return targets, predictions
 
 
-def _evaluate_frame(model: torch.nn.Module, frame: pd.DataFrame, pre: FixedPreprocessor) -> dict[str, float]:
-    x, y = _tensorize(frame, pre)
-    return regression_metrics(y.numpy(), _predict(model, x))
+def _evaluate_frame(
+    model: torch.nn.Module,
+    frame_or_dataset: pd.DataFrame | Dataset,
+    pre: FixedPreprocessor,
+) -> dict[str, float]:
+    dataset = _as_dataset(frame_or_dataset, pre)
+    y, pred = _predict_dataset(model, dataset)
+    return regression_metrics(y, pred)
 
 
 def _average_states(states: list[tuple[dict[str, torch.Tensor], int]]) -> dict[str, torch.Tensor]:
@@ -102,10 +124,16 @@ def train_select(
     global_state = plain_state_dict(global_model)
 
     clients: dict[str, ClientBundle] = {}
+    compact_splits: dict[str, dict[str, Dataset]] = {}
     for city, splits in source_splits.items():
-        x, y = _tensorize(splits["train"], preprocessor)
+        city_splits = {
+            name: _as_dataset(split, preprocessor)
+            for name, split in splits.items()
+        }
+        compact_splits[city] = city_splits
+        train_dataset = city_splits["train"]
         loader = DataLoader(
-            TensorDataset(x, y),
+            train_dataset,
             batch_size=config.batch_size,
             shuffle=True,
             drop_last=False,
@@ -122,7 +150,7 @@ def train_select(
             max_grad_norm=config.max_grad_norm,
             planned_steps=planned_steps,
         )
-        clients[city] = ClientBundle(city, x, y, privacy)
+        clients[city] = ClientBundle(city, train_dataset, privacy)
 
     best_state = copy.deepcopy(global_state)
     best_macro_val = float("inf")
@@ -160,7 +188,7 @@ def train_select(
         global_state = _average_states(updates)
         load_plain_state_dict(global_model, global_state)
         val_by_city = {
-            city: _evaluate_frame(global_model, source_splits[city]["val"], preprocessor)
+            city: _evaluate_frame(global_model, compact_splits[city]["val"], preprocessor)
             for city in sorted(source_splits)
         }
         macro_val = macro_source_mae(val_by_city)
@@ -188,7 +216,7 @@ def train_select(
 
     load_plain_state_dict(global_model, best_state)
     internal_by_city = {
-        city: _evaluate_frame(global_model, source_splits[city]["internal_test"], preprocessor)
+        city: _evaluate_frame(global_model, compact_splits[city]["internal_test"], preprocessor)
         for city in sorted(source_splits)
     }
     privacy_reports = {
