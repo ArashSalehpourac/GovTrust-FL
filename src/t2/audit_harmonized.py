@@ -124,7 +124,9 @@ def audit_one(
             else:
                 seen.add(key)
 
-        created = pd.to_datetime(\n            frame["created_date"], errors="coerce", utc=True, format="mixed"\n        )
+        created = pd.to_datetime(
+            frame["created_date"], errors="coerce", utc=True, format="mixed"
+        )
         invalid_created += int(created.isna().sum())
         valid_created = created.dropna()
         if not valid_created.empty:
