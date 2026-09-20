@@ -12,6 +12,8 @@ from .folds import loco_spec
 from .provenance import sha256_file
 from .runner import run_one
 
+LEGACY_DIAGNOSTIC_EXECUTION_RETIRED = True
+
 
 def _read_frame(path: Path) -> pd.DataFrame:
     suffix = path.suffix.lower()
@@ -44,6 +46,12 @@ def cmd_plan(_: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
+    if LEGACY_DIAGNOSTIC_EXECUTION_RETIRED:
+        raise SystemExit(
+            "Legacy Boston/LA diagnostic execution is retired. "
+            "Do not train until the full-data four-fold LOCO experiment contract "
+            "passes chronology/leakage/data-quality and experiment-design gates."
+        )
     paths = _city_paths(args.city)
     spec = loco_spec(args.held_out)
     expected = {*spec.source_cities, spec.held_out_city}
