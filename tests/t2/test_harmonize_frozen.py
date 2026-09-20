@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -156,3 +158,30 @@ def test_boston_snapshot_accepts_mixed_timestamp_formats(tmp_path) -> None:
     assert result["rows"] == 2
     assert result["created_date_min"] == "2021-01-01T00:06:37.397000+00:00"
     assert result["created_date_max"] == "2021-12-31T23:44:48+00:00"
+
+
+def test_frozen_manifest_keeps_la_2021_schema_distinct() -> None:
+    manifest_path = Path("configs/t2/frozen_raw_manifest.json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    snapshots = {
+        (row["city"], row["year"]): row
+        for row in manifest["snapshots"]
+    }
+
+    la_2021 = snapshots[("los_angeles", 2021)]
+    assert la_2021["column_count"] == 33
+    assert la_2021["schema_key"] == "la_2021_v1"
+
+    schema_2021 = manifest["schemas"]["la_2021_v1"]
+    assert len(schema_2021) == 33
+    assert "CreatedByUserOrganization" not in schema_2021
+
+    legacy_schema = manifest["schemas"]["la_legacy_v1"]
+    assert len(legacy_schema) == 34
+    assert "CreatedByUserOrganization" in legacy_schema
+
+    for year in (2022, 2023, 2024):
+        row = snapshots[("los_angeles", year)]
+        assert row["column_count"] == 34
+        assert row["schema_key"] == "la_legacy_v1"
