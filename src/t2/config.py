@@ -15,6 +15,8 @@ class T2Config:
     target_epsilon: float = float("inf")
     rounds: int = 20
     local_epochs: int = 1
+    training_budget: Literal["full_local_epochs", "fixed_total_effective_epochs"] = "full_local_epochs"
+    total_effective_epochs: float = 1.0
     batch_size: int = 256
     learning_rate: float = 0.02
     hidden_sizes: tuple[int, ...] = (64, 32)
@@ -41,6 +43,13 @@ class T2Config:
             raise ValueError("non-private controls must use epsilon=infinity")
         if self.rounds < 1 or self.local_epochs < 1 or self.batch_size < 1:
             raise ValueError("invalid training schedule")
+        if self.training_budget not in {
+            "full_local_epochs",
+            "fixed_total_effective_epochs",
+        }:
+            raise ValueError("unknown training budget")
+        if self.total_effective_epochs <= 0:
+            raise ValueError("total_effective_epochs must be positive")
         if self.device not in {"auto", "cpu", "cuda"}:
             raise ValueError("device must be auto, cpu, or cuda")
 
@@ -93,3 +102,47 @@ def delta_for_client(n_rows: int) -> float:
     if not 0.0 < delta < 1.0 / n_rows:
         raise AssertionError("delta rule must satisfy delta < 1/N")
     return delta
+
+
+def full_loco_plan(
+    *,
+    include_clipped_no_noise: bool = True,
+) -> list[dict[str, object]]:
+    """Frozen full-study four-fold LOCO matrix.
+
+    The primary matrix contains the non-private infinity baseline plus private
+    epsilon 5 and epsilon 1 for each held-out city and seed. The clipped,
+    zero-noise control is retained as a matched mechanism ablation when
+    requested.
+    """
+
+    rows: list[dict[str, object]] = []
+    for held_out in CITIES:
+        for seed in SEEDS:
+            rows.append(
+                {
+                    "held_out_city": held_out,
+                    "seed": seed,
+                    "mode": "nonprivate",
+                    "epsilon": float("inf"),
+                }
+            )
+            for epsilon in (5.0, 1.0):
+                rows.append(
+                    {
+                        "held_out_city": held_out,
+                        "seed": seed,
+                        "mode": "private",
+                        "epsilon": epsilon,
+                    }
+                )
+            if include_clipped_no_noise:
+                rows.append(
+                    {
+                        "held_out_city": held_out,
+                        "seed": seed,
+                        "mode": "clipped_no_noise",
+                        "epsilon": float("inf"),
+                    }
+                )
+    return rows
