@@ -378,16 +378,37 @@ def audit_analysis_frames(
         "harmonized_execution_git_sha": manifest.get("git_sha"),
         "audit_execution_git_sha": audit_sha,
         "audit_git_dirty": audit_dirty,
-        "manual_status_semantics_review_required": True,
+        "manual_status_semantics_review_required": False,
+        "manual_status_semantics_review_status": "PASS_WITH_INTERPRETATION",
+        "status_semantics_policy": {
+            "recognized_completion_states_observed": {
+                "boston": ["closed"],
+                "chicago": ["closed", "completed"],
+                "los_angeles": ["closed"],
+                "nyc": ["closed"],
+            },
+            "excluded_from_resolved_population": (
+                "canceled/cancelled, referral/forwarding, duplicate-administrative, "
+                "open/pending/in-progress, and other non-completion states"
+            ),
+            "interpretation_note": (
+                "status denotes administrative closure/completion; it is not "
+                "assumed to equal physical service fulfillment"
+            ),
+        },
         "primary_estimand": {
             "population": (
-                "municipal service requests reaching a recognized final status "
-                "with parseable nonnegative resolution duration"
+                "municipal service requests reaching a recognized administrative "
+                "completion/closure status with parseable nonnegative close duration"
             ),
-            "outcome": "log1p(resolution_hours)",
+            "outcome": (
+                "log1p(resolution_hours), where resolution_hours is operationalized "
+                "as administrative close/completion duration"
+            ),
             "interpretation": (
-                "resolution-time reliability conditional on observed resolution; "
-                "not a time-to-resolution estimand for all incoming requests"
+                "administrative closure/completion-time reliability conditional on "
+                "observed completion; not a time-to-physical-fulfillment estimand "
+                "for all incoming requests"
             ),
             "final_statuses_normalized": sorted(FINAL_STATUSES),
         },
