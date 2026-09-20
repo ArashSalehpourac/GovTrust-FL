@@ -40,4 +40,7 @@ def test_preprocessor_constructor_accepts_no_training_data():
 
 def test_primary_features_exclude_city_shortcuts():
     selected = set(CAT_COLS + NUM_COLS + [TEXT_COL])
+    assert TEXT_COL == "category"
+    assert "descriptor" in FORBIDDEN_PRIMARY
+    assert "descriptor" not in selected
     assert selected.isdisjoint(FORBIDDEN_PRIMARY)
