@@ -51,3 +51,25 @@ def test_duplicate_request_ids_are_deduplicated_before_split_use():
     out = prepare_resolved_frame(frame)
     assert list(out["request_id"].astype(str)) == ["dup", "unique"]
     assert np.isclose(out.loc[0, "resolution_hours"], 1.0)
+
+
+def test_prepare_resolved_frame_preserves_mixed_timestamp_formats():
+    frame = pd.DataFrame(
+        {
+            "request_id": ["a", "b"],
+            "created_date": [
+                "2021-01-01 00:06:37.397",
+                "2021-01-02 01:44:00",
+            ],
+            "closed_date": [
+                "2021-01-01 01:06:37.397",
+                "2021-01-02 03:44:00",
+            ],
+            "category": ["a", "b"],
+            "descriptor": ["x", "y"],
+            "status": ["closed", "closed"],
+        }
+    )
+    out = prepare_resolved_frame(frame)
+    assert len(out) == 2
+    assert np.allclose(out["resolution_hours"].to_numpy(), [1.0, 2.0])
