@@ -107,7 +107,7 @@ def _average_states(states: list[tuple[dict[str, torch.Tensor], int]]) -> dict[s
     return out
 
 
-def _step_budget(loader_batches: int, config: T2Config) -> tuple[int, int]:
+def training_step_budget(loader_batches: int, config: T2Config) -> tuple[int, int]:
     if loader_batches < 1:
         raise ValueError("client loader must have at least one batch")
     if config.training_budget == "full_local_epochs":
@@ -167,7 +167,7 @@ def train_select(
         )
         local_model = ResolutionMLP(input_dim, config.hidden_sizes).to(device)
         load_plain_state_dict(local_model, global_state)
-        steps_per_round, planned_steps = _step_budget(len(loader), config)
+        steps_per_round, planned_steps = training_step_budget(len(loader), config)
         privacy = make_training_state(
             model=local_model,
             loader=loader,
