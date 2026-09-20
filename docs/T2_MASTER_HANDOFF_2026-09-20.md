@@ -191,3 +191,51 @@ At this update:
 - training remains blocked.
 
 PR #4 remains draft/unmerged.
+
+
+## Continuation update — harmonizer validation green
+
+Live re-verification after the raw 20/20 transition:
+
+- Saved Colab cell 84 completed with `CHICAGO_2025_LOCAL_GATE=PASS`,
+  `SOURCE_STABILITY_GATE=PASS`, and `CHICAGO_2025_DRIVE_ARCHIVE_GATE=PASS`.
+- Chicago 2025 final Drive artifact:
+  - rows: `1,960,595`
+  - size: `386,539,997` bytes
+  - SHA256: `30d6344d7db65aa9ac126a05e6e2adde5aa1f15c4db0e8df1628bab592dffd21`
+  - Drive ID: `1ebAXhIZrBAYYnlYx6Rldm2Oot7fj_Ivb`
+- `FINAL_RAW_FILES_ACCEPTED=20/20`
+- `RAW_DATA_GATE=PASS`
+- Central raw manifest/checksum Sheet ID:
+  `1cNFTji5qSQBe9QRs0DsqcmFkVqRk0FDjdLY7i1vlMT0`
+- Raw manifest, SHA256, date-range, duplicate-ID, schema and provenance gates are PASS.
+
+Pre-harmonization code gate:
+- README Drive path corrected to the live redesign-root mount.
+- Ruff findings in the frozen harmonizer/test were repaired without changing scientific semantics.
+- Validated branch commit:
+  `64de331fde4554c9af1bdcd306acb903dcff590f`
+- GitHub Actions T2 Validation run:
+  `35530429768`
+- preflight, 31 T2 tests, full test discovery, Ruff, compile, and notebook-artifact checks: PASS.
+- `FROZEN_RAW_HARMONIZER_CODE_GATE=PASS`
+
+Live data-stage state:
+- Drive `02_Harmonized` is still empty.
+- `HARMONIZATION_GATE=NOT_STARTED`
+- `HARMONIZED_HASH_GATE=NOT_STARTED`
+- `CHRONOLOGY_LEAKAGE_DATA_QUALITY_GATE=NOT_STARTED`
+- `READY_FOR_EXPERIMENT_DESIGN_REVIEW=NO`
+- `SCIENTIFIC_TRAINING_STARTED=NO`
+- `REAL_RESULTS_GENERATED=NO`
+
+Important later-stage blocker:
+`scripts/t2/run_diagnostic_matrix.py` still requires the obsolete
+`t2_diagnostic_input_archive_v2` bounded-API input archive. That path is not
+authorized for the current frozen-raw study. Do not execute or adapt training
+until harmonization and the subsequent chronology/leakage/data-quality and
+experiment-design reviews define the frozen-harmonized training input contract.
+
+Preserve Boston's 30-column authoritative CSV rule, LA 2025 partial coverage,
+Chicago interrupted staging artifacts, and full provenance. PR #4 remains
+draft/unmerged.
