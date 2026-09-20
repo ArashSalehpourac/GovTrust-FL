@@ -2,7 +2,7 @@ import pandas as pd
 
 from src.t2.config import T2Config
 from src.t2.data import prepare_resolved_frame
-from src.t2.federated import resolve_device, train_select
+from src.t2.federated import resolve_device, train_select, training_step_budget
 from src.t2.folds import chronological_split
 from src.t2.preprocessing import build_fixed_preprocessor
 
@@ -57,3 +57,24 @@ def test_nonprivate_fedavg_point_regression_path_runs():
     assert result["source_macro_mae_log1p_hours"] >= 0
     assert result["device"] == "cpu"
     assert set(result["internal_by_city"]) == {"a", "b", "c"}
+
+
+def test_fixed_total_effective_epoch_budget_is_deterministic():
+    cfg = T2Config(
+        rounds=20,
+        training_budget="fixed_total_effective_epochs",
+        total_effective_epochs=1.0,
+        batch_size=1024,
+    )
+    steps_per_round, planned = training_step_budget(1003, cfg)
+    assert steps_per_round == 51
+    assert planned == 1020
+    assert planned / 1003 >= 1.0
+    assert planned / 1003 < 1.02
+
+
+def test_legacy_full_epoch_budget_remains_exact_for_small_tests():
+    cfg = T2Config(rounds=2, local_epochs=1, batch_size=8)
+    steps_per_round, planned = training_step_budget(5, cfg)
+    assert steps_per_round == 5
+    assert planned == 10
