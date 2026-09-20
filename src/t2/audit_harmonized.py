@@ -124,7 +124,7 @@ def audit_one(
             else:
                 seen.add(key)
 
-        created = pd.to_datetime(frame["created_date"], errors="coerce", utc=True)
+        created = pd.to_datetime(\n            frame["created_date"], errors="coerce", utc=True, format="mixed"\n        )
         invalid_created += int(created.isna().sum())
         valid_created = created.dropna()
         if not valid_created.empty:
@@ -137,7 +137,7 @@ def audit_one(
         blank_closed = _blank(closed_raw)
         missing["closed_date"] += int(blank_closed.sum())
         nonblank_closed += int((~blank_closed).sum())
-        closed = pd.to_datetime(closed_raw, errors="coerce", utc=True)
+        closed = pd.to_datetime(closed_raw, errors="coerce", utc=True, format="mixed")
         invalid_closed_nonblank += int(((~blank_closed) & closed.isna()).sum())
 
         paired = created.notna() & closed.notna()
