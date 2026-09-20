@@ -86,3 +86,42 @@ def test_audit_one_blocks_created_year_violation(tmp_path) -> None:
     report = audit_one(path=path, raw_entry=raw_entry, output_entry=output_entry)
     assert report["gate"] == "FAIL"
     assert any("outside snapshot year" in item for item in report["blockers"])
+
+
+def test_audit_one_accepts_mixed_timestamp_formats(tmp_path) -> None:
+    frame = pd.DataFrame(
+        {
+            "request_id": ["1", "2"],
+            "created_date": ["2021-01-01 00:06:37.397", "2021-12-31 23:44:48"],
+            "closed_date": ["2021-01-01 01:06:37.397", "2022-01-01 00:44:48"],
+            "status": ["Closed", "Closed"],
+            "category": ["Reason A", "Reason B"],
+            "descriptor": ["Type A", "Type B"],
+            "agency": ["Subject A", "Subject B"],
+            "latitude": ["42.3", "42.4"],
+            "longitude": ["-71.0", "-71.1"],
+            "area": ["Back Bay", "Roxbury"],
+            "city": ["boston", "boston"],
+        }
+    )[HARMONIZED_COLUMNS]
+    path = tmp_path / "BOSTON_2021_harmonized.parquet"
+    frame.to_parquet(path, index=False)
+
+    raw_entry = {
+        "city": "boston",
+        "year": 2021,
+        "rows": 2,
+        "min_created": "2021-01-01 00:06:37.397",
+        "max_created": "2021-12-31 23:44:48",
+        "null_ids": 0,
+        "duplicate_ids": 0,
+    }
+    output_entry = {
+        "harmonized_size_bytes": path.stat().st_size,
+        "harmonized_sha256": _sha256(path),
+        "rows": 2,
+    }
+    report = audit_one(path=path, raw_entry=raw_entry, output_entry=output_entry)
+    assert report["gate"] == "PASS"
+    assert report["invalid_created_date"] == 0
+    assert report["invalid_closed_date_nonblank"] == 0
