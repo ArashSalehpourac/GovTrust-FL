@@ -10,6 +10,7 @@ from .compact import CompactRegressionDataset, ShardedCompactRegressionDataset
 from .data import frame_summary, prepare_resolved_frame
 from .folds import INTERNAL_TEST_START, VALIDATION_START
 from .preprocessing import FixedPreprocessor
+from .provenance import sha256_file
 
 YEARS = (2021, 2022, 2023, 2024, 2025)
 CITY_FILENAME_PREFIX = {
@@ -122,8 +123,13 @@ def load_source_city_bundle(
             raise RuntimeError(
                 f"{city} {year}: size differs from harmonized manifest"
             )
+        actual_sha = sha256_file(path)
+        if actual_sha != str(entry["harmonized_sha256"]):
+            raise RuntimeError(
+                f"{city} {year}: SHA256 differs from harmonized manifest"
+            )
 
-        sha_by_year[str(year)] = str(entry["harmonized_sha256"])
+        sha_by_year[str(year)] = actual_sha
         note = entry.get("coverage_note")
         if note:
             coverage_notes.append(str(note))
@@ -203,6 +209,11 @@ def load_external_2025(
         raise RuntimeError(
             f"{city} 2025: size differs from harmonized manifest"
         )
+    actual_sha = sha256_file(path)
+    if actual_sha != str(entry["harmonized_sha256"]):
+        raise RuntimeError(
+            f"{city} 2025: SHA256 differs from harmonized manifest"
+        )
 
     prepared = _load_prepared_year(path, city)
     summary = frame_summary(prepared)
@@ -215,6 +226,6 @@ def load_external_2025(
     return (
         dataset,
         summary,
-        {"2025": str(entry["harmonized_sha256"])},
+        {"2025": actual_sha},
         notes,
     )
