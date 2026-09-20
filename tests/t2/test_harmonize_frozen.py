@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import pandas as pd
 import pytest
 
@@ -7,6 +9,7 @@ from src.t2.harmonize_frozen import (
     HARMONIZED_COLUMNS,
     _validate_header,
     harmonize_chunk,
+    harmonize_snapshot,
 )
 
 
@@ -105,3 +108,51 @@ def test_exact_frozen_header_rejects_unused_column_drift() -> None:
     _validate_header(["id", "created", "unused"], entry)
     with pytest.raises(RuntimeError, match="exact frozen header mismatch"):
         _validate_header(["id", "created", "different_unused"], entry)
+
+
+def test_boston_snapshot_accepts_mixed_timestamp_formats(tmp_path) -> None:
+    columns = {
+        "case_enquiry_id": ["1", "2"],
+        "open_dt": ["2021-01-01 00:06:37.397", "2021-12-31 23:44:48"],
+        "closed_dt": ["2021-01-01 01:06:37.397", "2022-01-01 00:44:48"],
+        "case_status": ["Closed", "Closed"],
+        "reason": ["Reason A", "Reason B"],
+        "type": ["Type A", "Type B"],
+        "subject": ["Subject A", "Subject B"],
+        "latitude": ["42.3", "42.4"],
+        "longitude": ["-71.0", "-71.1"],
+        "neighborhood": ["Back Bay", "Roxbury"],
+    }
+    for i in range(20):
+        columns[f"extra_{i}"] = ["x", "y"]
+
+    raw = pd.DataFrame(columns)
+    raw_path = tmp_path / "BOSTON_2021_raw.csv"
+    raw.to_csv(raw_path, index=False)
+    raw_sha = hashlib.sha256(raw_path.read_bytes()).hexdigest()
+
+    entry = {
+        "city": "boston",
+        "year": 2021,
+        "filename": raw_path.name,
+        "size_bytes": raw_path.stat().st_size,
+        "sha256": raw_sha,
+        "column_count": 30,
+        "rows": 2,
+        "min_created": "2021-01-01 00:06:37.397",
+        "max_created": "2021-12-31 23:44:48",
+        "null_ids": 0,
+        "duplicate_ids": 0,
+        "expected_columns": list(raw.columns),
+    }
+    output_path = tmp_path / "BOSTON_2021_harmonized.parquet"
+    result = harmonize_snapshot(
+        raw_path=raw_path,
+        output_path=output_path,
+        entry=entry,
+        chunksize=100,
+    )
+    assert output_path.is_file()
+    assert result["rows"] == 2
+    assert result["created_date_min"] == "2021-01-01T00:06:37.397000+00:00"
+    assert result["created_date_max"] == "2021-12-31T23:44:48+00:00"
