@@ -335,3 +335,40 @@ quarantine the 15 attempt-2 derived files; preserve attempt-1 quarantine; keep
 the canonical `02_Harmonized` folder unchanged; regenerate all 20 outputs
 from untouched frozen raw snapshots under the single validated execution SHA
 `f51669502048e2d511edeead31b1c75ed2f92400`; no training.
+
+
+## Harmonization attempt 3 — complete gate transition
+
+Validated execution SHA:
+`f51669502048e2d511edeead31b1c75ed2f92400`.
+
+Clean all-20 harmonization completed from untouched frozen raw snapshots.
+
+Independent Drive/sidecar verification:
+- 20 final Parquets in canonical `02_Harmonized`: NYC 5, Chicago 5, Boston 5, Los Angeles 5.
+- `T2_HARMONIZED_MANIFEST.json` present.
+- `T2_HARMONIZED_CHECKSUMS_SHA256.txt` present.
+- `T2_HARMONIZED_AUDIT.json` present.
+- execution manifest: protocol `t2_frozen_raw_harmonization_v1`, `git_sha=f51669502048e2d511edeead31b1c75ed2f92400`, `git_dirty=false`, `row_filtering=none`, 20 outputs.
+- checksum sidecar: exactly 20 unique entries; exact filename/hash agreement with both manifest and audit JSON.
+- structural audit: protocol `t2_harmonized_audit_v1`, gate PASS, 20 files, 0 blockers, 13 quantified warnings.
+
+Gate transition:
+- `HARMONIZATION_GATE=PASS`
+- `HARMONIZED_HASH_GATE=PASS`
+- `HARMONIZED_STRUCTURAL_DATA_AUDIT_GATE=PASS`
+- `SCIENTIFIC_TRAINING_STARTED=NO`
+- `REAL_RESULTS_GENERATED=NO`
+
+Retained data-quality warnings for the next gate:
+- Los Angeles 2021: 3,369 closed-before-created rows.
+- Los Angeles 2022: 31 closed-before-created rows.
+- Los Angeles 2025: 810,979 missing descriptor rows.
+- NYC 2021: 11,988 closed-before-created rows; 91,040 missing descriptor rows.
+- NYC 2022: 8,151 closed-before-created rows; 97,843 missing descriptor rows.
+- NYC 2023: 4,313 closed-before-created rows; 97,868 missing descriptor rows.
+- NYC 2024: 988 closed-before-created rows; 112,291 missing descriptor rows.
+- NYC 2025: 916 closed-before-created rows; 84,294 missing descriptor rows.
+
+Next stage:
+`CHRONOLOGY_LEAKAGE_DATA_QUALITY_REVIEW`. Training remains forbidden until that gate and experiment-design review pass.
