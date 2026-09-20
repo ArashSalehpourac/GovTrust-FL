@@ -23,7 +23,7 @@ from src.t2.preprocessing import (
     build_fixed_preprocessor,
     feature_manifest,
 )
-from src.t2.provenance import sha256_file
+from src.t2.provenance import git_state, sha256_file
 
 AUDIT_COLUMNS = [
     "request_id",
@@ -356,11 +356,17 @@ def audit_analysis_frames(
     if primary_inputs & FORBIDDEN_PRIMARY:
         blockers.append("primary predictor set contains a forbidden jurisdiction shortcut")
 
-    known_limitations = [
+    coverage_notes = [
         note
         for city in cities
         for note in city["coverage_notes"]
     ]
+
+    audit_sha, audit_dirty = git_state()
+    if audit_sha == "UNKNOWN":
+        blockers.append("analysis audit code SHA is UNKNOWN")
+    if audit_dirty:
+        blockers.append("analysis audit checkout is dirty")
 
     report = {
         "protocol": "t2_chronology_leakage_data_quality_audit_v1",
@@ -369,6 +375,9 @@ def audit_analysis_frames(
         "training_authorized_by_this_report": False,
         "ready_for_experiment_design_review": not blockers,
         "harmonized_execution_git_sha": manifest.get("git_sha"),
+        "audit_execution_git_sha": audit_sha,
+        "audit_git_dirty": audit_dirty,
+        "manual_status_semantics_review_required": True,
         "primary_estimand": {
             "population": (
                 "municipal service requests reaching a recognized final status "
@@ -382,7 +391,7 @@ def audit_analysis_frames(
             "final_statuses_normalized": sorted(FINAL_STATUSES),
         },
         "analysis_frame_policy": {
-            "harmonized_rows_are_never_deleted_or overwritten": True,
+            "harmonized_rows_are_never_deleted_or_overwritten": True,
             "exclude_nonfinal_status_in_analysis_frame": True,
             "exclude_missing_or_invalid_closed_date_in_analysis_frame": True,
             "exclude_negative_resolution_duration_in_analysis_frame": True,
@@ -411,7 +420,7 @@ def audit_analysis_frames(
             "explicitly_excluded_primary": feature_info["explicitly_excluded_primary"],
             "forbidden_outcome_or_postoutcome_inputs": sorted(forbidden_outcome_inputs),
         },
-        "known_coverage_limitations": known_limitations,
+        "coverage_and_provenance_notes": coverage_notes,
         "files": file_rows,
         "cities": cities,
     }
