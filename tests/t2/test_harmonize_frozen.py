@@ -3,7 +3,11 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.t2.harmonize_frozen import (\n    HARMONIZED_COLUMNS,\n    _validate_header,\n    harmonize_chunk,\n)
+from src.t2.harmonize_frozen import (
+    HARMONIZED_COLUMNS,
+    _validate_header,
+    harmonize_chunk,
+)
 
 
 def test_nyc_harmonization_is_row_preserving() -> None:
