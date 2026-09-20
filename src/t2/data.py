@@ -22,8 +22,8 @@ def prepare_resolved_frame(frame: pd.DataFrame) -> pd.DataFrame:
     out = frame.copy()
     out["request_id"] = out["request_id"].astype("string").str.strip()
     out = out[out["request_id"].notna() & out["request_id"].ne("")].copy()
-    out["created_date"] = pd.to_datetime(out["created_date"], errors="coerce", utc=True)
-    out["closed_date"] = pd.to_datetime(out["closed_date"], errors="coerce", utc=True)
+    out["created_date"] = pd.to_datetime(\n        out["created_date"], errors="coerce", utc=True, format="mixed"\n    )
+    out["closed_date"] = pd.to_datetime(\n        out["closed_date"], errors="coerce", utc=True, format="mixed"\n    )
     out = out[out["created_date"].notna() & out["closed_date"].notna()].copy()
 
     if "status" in out.columns:
