@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from bisect import bisect_right
+
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
 from .data import PRIMARY_TARGET
-from .preprocessing import FixedPreprocessor, TEXT_COL
+from .preprocessing import TEXT_COL, FixedPreprocessor
 
 
 class CompactRegressionDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
@@ -52,7 +53,7 @@ class CompactRegressionDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
         cls,
         frame: pd.DataFrame,
         preprocessor: FixedPreprocessor,
-    ) -> "CompactRegressionDataset":
+    ) -> CompactRegressionDataset:
         required = {TEXT_COL, "hour", "day_of_week", "month", "is_weekend", PRIMARY_TARGET}
         missing = required - set(frame.columns)
         if missing:
