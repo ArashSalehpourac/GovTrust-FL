@@ -7,19 +7,27 @@ from src.t2.folds import chronological_split
 from src.t2.preprocessing import build_fixed_preprocessor
 
 
-def _raw(city: str, n: int = 36) -> pd.DataFrame:
-    created = pd.date_range("2026-01-01", periods=n, freq="h", tz="UTC")
-    closed = created + pd.to_timedelta([(i % 12) + 1 for i in range(n)], unit="h")
-    return pd.DataFrame(
-        {
-            "request_id": [f"{city}-{i}" for i in range(n)],
-            "created_date": created,
-            "closed_date": closed,
-            "category": [f"{city}-cat-{i % 3}" for i in range(n)],
-            "descriptor": [f"common request token {i % 5}" for i in range(n)],
-            "status": "closed",
-        }
-    )
+def _raw(city: str, rows_per_year: int = 12) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for year in range(2021, 2026):
+        created = pd.date_range(
+            f"{year}-06-01",
+            periods=rows_per_year,
+            freq="h",
+            tz="UTC",
+        )
+        for i, created_at in enumerate(created):
+            rows.append(
+                {
+                    "request_id": f"{city}-{year}-{i}",
+                    "created_date": created_at,
+                    "closed_date": created_at + pd.Timedelta(hours=(i % 6) + 1),
+                    "category": f"{city}-cat-{i % 3}",
+                    "descriptor": f"diagnostic-only descriptor {i % 5}",
+                    "status": "closed",
+                }
+            )
+    return pd.DataFrame(rows)
 
 
 def test_cpu_device_resolution_is_explicit():
