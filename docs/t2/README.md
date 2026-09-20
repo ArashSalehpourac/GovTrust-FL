@@ -1,5 +1,38 @@
 # T2 diagnostic validity gate
 
+## Current authorized data stage — frozen 20/20 archive
+
+As of 2026-09-20, `FINAL_RAW_FILES_ACCEPTED=20/20` and `RAW_DATA_GATE=PASS`.
+The current harmonization stage is authorized to read **only** the frozen files in
+Google Drive `Real Datasets — 2021-2025/01_Raw_Official`. It must not re-fetch
+municipal APIs, select bounded samples, or substitute historical Step-3 cleaned data.
+
+The frozen registry is committed at `configs/t2/frozen_raw_manifest.json` and is
+also mirrored in the Drive spreadsheet `T2_RAW_MANIFEST_CHECKSUMS_20_FINAL_2026-09-20`.
+The harmonizer verifies every raw file's byte size and SHA256 before reading it,
+preserves every row, enforces the Boston 30-column CSV rule (no datastore-only
+`_id`), and preserves LA 2025's official partial coverage.
+
+From the existing Colab Drive mount, the authorized command is:
+
+```bash
+python scripts/t2/harmonize_frozen_raw.py \
+  --raw-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/01_Raw_Official" \
+  --output-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized"
+```
+
+The command writes one Parquet artifact per city-year plus
+`T2_HARMONIZED_MANIFEST.json` and `T2_HARMONIZED_CHECKSUMS_SHA256.txt`.
+Existing harmonized outputs are never overwritten.
+
+**Do not run training yet.** Harmonized hashes, chronology/leakage/data-quality
+gates, and the experiment-design review must pass first.
+
+`scripts/t2/prepare_inputs.py` is retained only for the earlier bounded-API
+diagnostic design. Its live-API fetch path is **not authorized for the current
+harmonization stage**.
+
+
 This package is an additive redesign of GovTrust-FL. Historical Step 1-19 code is not modified.
 
 ## Scientific question
