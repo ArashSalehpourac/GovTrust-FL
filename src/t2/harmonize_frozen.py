@@ -255,7 +255,12 @@ def harmonize_snapshot(
     }
 
 def harmonize_all(
-    *, raw_dir: Path, output_dir: Path, manifest_path: Path, chunksize: int = 100_000
+    *,
+    raw_dir: Path,
+    output_dir: Path,
+    manifest_path: Path,
+    metadata_dir: Path | None = None,
+    chunksize: int = 100_000,
 ) -> dict[str, object]:
     manifest_bytes = manifest_path.read_bytes()
     raw_manifest_sha = hashlib.sha256(manifest_bytes).hexdigest()
@@ -269,6 +274,8 @@ def harmonize_all(
 
     sha, dirty = git_state()
     output_dir.mkdir(parents=True, exist_ok=True)
+    metadata_dir = output_dir if metadata_dir is None else metadata_dir
+    metadata_dir.mkdir(parents=True, exist_ok=True)
     results: list[dict[str, object]] = []
     for raw_entry in entries:
         entry = dict(raw_entry)
@@ -303,11 +310,13 @@ def harmonize_all(
         "raw_manifest_sha256": raw_manifest_sha,
         "source_rule": "frozen Drive raw snapshots only; no live API fetch",
         "row_filtering": "none",
+        "harmonized_output_dir": str(output_dir),
+        "metadata_dir": str(metadata_dir),
         "outputs": results,
     }
-    manifest_out = output_dir / "T2_HARMONIZED_MANIFEST.json"
+    manifest_out = metadata_dir / "T2_HARMONIZED_MANIFEST.json"
     manifest_out.write_text(json.dumps(harmonized_manifest, indent=2, sort_keys=True) + "\n")
-    checksum_out = output_dir / "T2_HARMONIZED_CHECKSUMS_SHA256.txt"
+    checksum_out = metadata_dir / "T2_HARMONIZED_CHECKSUMS_SHA256.txt"
     checksum_out.write_text(
         "".join(f"{row['harmonized_sha256']}  {row['harmonized_filename']}\n" for row in results)
     )
