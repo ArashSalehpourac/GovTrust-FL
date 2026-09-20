@@ -73,3 +73,19 @@ def test_prepare_resolved_frame_preserves_mixed_timestamp_formats():
     out = prepare_resolved_frame(frame)
     assert len(out) == 2
     assert np.allclose(out["resolution_hours"].to_numpy(), [1.0, 2.0])
+
+
+def test_descriptor_is_not_required_for_primary_analysis_frame():
+    frame = pd.DataFrame(
+        {
+            "request_id": ["a"],
+            "created_date": ["2025-01-01T00:00:00Z"],
+            "closed_date": ["2025-01-01T02:00:00Z"],
+            "category": ["Street issue"],
+            "status": ["closed"],
+        }
+    )
+    out = prepare_resolved_frame(frame)
+    assert len(out) == 1
+    assert np.isclose(out.loc[0, "resolution_hours"], 2.0)
+    assert "descriptor" not in out.columns
