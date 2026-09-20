@@ -15,6 +15,7 @@ from src.t2.config import CITIES, T2Config, diagnostic_plan
 from src.t2.provenance import canonical_hash, git_state, sha256_file
 
 INPUT_PROTOCOL = "t2_diagnostic_input_archive_v2"
+LEGACY_DIAGNOSTIC_EXECUTION_RETIRED = True
 
 
 def _epsilon(value: object) -> float:
@@ -161,6 +162,11 @@ def _command(
 
 
 def execute_matrix(input_dir: Path, output_dir: Path, device: str) -> None:
+    if LEGACY_DIAGNOSTIC_EXECUTION_RETIRED:
+        raise RuntimeError(
+            "Legacy 20k-per-city Boston/LA diagnostic matrix is retired. "
+            "Use the full-data four-fold LOCO protocol only after pre-training gates pass."
+        )
     sha, dirty = git_state()
     if sha == "UNKNOWN" or dirty:
         raise RuntimeError("diagnostic matrix requires a clean pinned Git checkout")
@@ -257,6 +263,10 @@ def main() -> int:
         print(json.dumps(diagnostic_plan(), indent=2, default=str))
         print("No training started. Re-run with --execute to authorize the frozen matrix.")
         return 0
+    if LEGACY_DIAGNOSTIC_EXECUTION_RETIRED:
+        raise SystemExit(
+            "Legacy diagnostic execution is retired; no training started."
+        )
     execute_matrix(
         Path(args.input_dir).expanduser().resolve(),
         Path(args.output_dir).expanduser().resolve(),
