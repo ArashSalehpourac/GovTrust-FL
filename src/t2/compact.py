@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from bisect import bisect_right
 import numpy as np
 import pandas as pd
 import torch
@@ -97,3 +98,38 @@ class CompactRegressionDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
             self.target,
         )
         return int(sum(t.numel() * t.element_size() for t in tensors))
+
+
+class ShardedCompactRegressionDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
+    """Concatenate compact shards without materializing a dense feature matrix."""
+
+    def __init__(self, shards: list[CompactRegressionDataset]) -> None:
+        if not shards:
+            raise ValueError("at least one compact shard is required")
+        self.shards = list(shards)
+        self._ends: list[int] = []
+        total = 0
+        for shard in self.shards:
+            total += len(shard)
+            self._ends.append(total)
+        self._length = total
+
+    def __len__(self) -> int:
+        return self._length
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        if index < 0:
+            index += self._length
+        if index < 0 or index >= self._length:
+            raise IndexError(index)
+        shard_index = bisect_right(self._ends, index)
+        start = 0 if shard_index == 0 else self._ends[shard_index - 1]
+        return self.shards[shard_index][index - start]
+
+    @property
+    def dense_rows_materialized(self) -> int:
+        return 0
+
+    @property
+    def resident_bytes(self) -> int:
+        return int(sum(shard.resident_bytes for shard in self.shards))
