@@ -282,3 +282,56 @@ quarantine, do not reuse or silently delete, the failed-run derived artifacts;
 keep the canonical `02_Harmonized` folder ID unchanged; regenerate all 20
 outputs from the untouched frozen raw snapshots under the single validated fix
 SHA; no training.
+
+
+## Harmonization attempt 2 — LA 2021 exact-schema correction
+
+Attempt 2 used timestamp-fixed execution SHA
+`1d6e49fcbb91e1a99a46fd7788e304bb91f874d7`.
+
+Observed state:
+- NYC 2021-2025 harmonized Parquets completed.
+- Chicago 2021-2025 harmonized Parquets completed.
+- Boston 2021-2025 harmonized Parquets completed.
+- 15 total completed outputs.
+- Failure occurred before LA output creation.
+- No final harmonized manifest, checksum file, or audit report was written.
+- Frozen raw snapshots were not modified.
+- `HARMONIZATION_GATE=NOT_PASSED`.
+
+Failure:
+`RuntimeError: LA_2021_raw.csv: column count mismatch 33 != 34`.
+
+Independent resolution:
+- original acquisition/validation Colab cell 69 explicitly reports
+  `CSV_COLUMN_COUNT = 33`
+- LA 2021 exact CSV header has 33 fields
+- `CreatedByUserOrganization` is absent from LA 2021
+- LA 2022-2024 each independently validate at 34 columns and include that field
+- LA 2025 remains its separate 34-column schema
+- LA 2021 raw object is unchanged:
+  - Drive ID `145-M-RUq1MygJ0rROvtpUfdMyJbJb3Yc`
+  - size `508,715,329` bytes
+  - SHA256 `2713ab746cb1f1f11df6a93f4f5fb1307a4d309fb1812d30f2453e1faa3a9a87`
+
+Corrections:
+- central Drive raw manifest corrected to exact LA 2021 33-column schema
+- repository frozen manifest uses dedicated `la_2021_v1`
+- regression test enforces LA 2021 = 33 columns and LA 2022-2024 = 34
+- no raw bytes changed
+
+Validated execution SHA:
+`f51669502048e2d511edeead31b1c75ed2f92400`
+
+GitHub Actions T2 Validation:
+`35533169219` — PASS.
+
+Current canonical `02_Harmonized` state:
+exactly 15 completed Parquets (NYC 5, Chicago 5, Boston 5), no LA outputs,
+and no final harmonized manifest/checksum/audit sidecars.
+
+Recovery policy:
+quarantine the 15 attempt-2 derived files; preserve attempt-1 quarantine; keep
+the canonical `02_Harmonized` folder unchanged; regenerate all 20 outputs
+from untouched frozen raw snapshots under the single validated execution SHA
+`f51669502048e2d511edeead31b1c75ed2f92400`; no training.
