@@ -26,7 +26,8 @@
       "min_created": "2021-01-01 00:00:00",
       "max_created": "2021-12-31 23:59:43",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "nyc_v1"
     },
     {
       "city": "nyc",
@@ -41,7 +42,8 @@
       "min_created": "2022-01-01 00:00:00",
       "max_created": "2022-12-31 23:59:25",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "nyc_v1"
     },
     {
       "city": "nyc",
@@ -56,7 +58,8 @@
       "min_created": "2023-01-01 00:00:00",
       "max_created": "2023-12-31 23:59:42",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "nyc_v1"
     },
     {
       "city": "nyc",
@@ -71,7 +74,8 @@
       "min_created": "2024-01-01 00:00:00",
       "max_created": "2024-12-31 23:59:38",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "nyc_v1"
     },
     {
       "city": "nyc",
@@ -86,7 +90,8 @@
       "min_created": "2025-01-01 00:00:12",
       "max_created": "2025-12-31 23:59:28",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "nyc_v1"
     },
     {
       "city": "chicago",
@@ -101,7 +106,8 @@
       "min_created": "2021-01-01 00:00:09",
       "max_created": "2021-12-31 23:57:32",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "chicago_v1"
     },
     {
       "city": "chicago",
@@ -116,7 +122,8 @@
       "min_created": "2022-01-01 00:00:24",
       "max_created": "2022-12-31 23:52:19",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "chicago_v1"
     },
     {
       "city": "chicago",
@@ -131,7 +138,8 @@
       "min_created": "2023-01-01 00:01:17",
       "max_created": "2023-12-31 23:58:01",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "chicago_v1"
     },
     {
       "city": "chicago",
@@ -146,7 +154,8 @@
       "min_created": "2024-01-01 00:00:12",
       "max_created": "2024-12-31 23:59:43",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "chicago_v1"
     },
     {
       "city": "chicago",
@@ -162,7 +171,8 @@
       "max_created": "2025-12-31 23:59:32",
       "null_ids": 0,
       "duplicate_ids": 0,
-      "coverage_note": "Recovered from safeguarded exact 1,500,000-row prefix after official HTTP 503; interrupted staging artifacts preserved."
+      "coverage_note": "Recovered from safeguarded exact 1,500,000-row prefix after official HTTP 503; interrupted staging artifacts preserved.",
+      "schema_key": "chicago_v1"
     },
     {
       "city": "boston",
@@ -177,7 +187,8 @@
       "min_created": "2021-01-01 00:06:37.397000",
       "max_created": "2021-12-31 23:44:48.140000",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "boston_csv_v1"
     },
     {
       "city": "boston",
@@ -192,7 +203,8 @@
       "min_created": "2022-01-01 00:16:00",
       "max_created": "2022-12-31 23:30:00",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "boston_csv_v1"
     },
     {
       "city": "boston",
@@ -207,7 +219,8 @@
       "min_created": "2023-01-01 00:11:22.940000",
       "max_created": "2023-12-31 23:50:00",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "boston_csv_v1"
     },
     {
       "city": "boston",
@@ -222,7 +235,8 @@
       "min_created": "2024-01-01 00:20:52.963000",
       "max_created": "2024-12-31 23:47:03.657000",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "boston_csv_v1"
     },
     {
       "city": "boston",
@@ -237,7 +251,8 @@
       "min_created": "2025-01-01 00:04:29.143000",
       "max_created": "2025-12-31 23:58:57.723000",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "boston_csv_v1"
     },
     {
       "city": "los_angeles",
@@ -252,7 +267,8 @@
       "min_created": "2021-01-01 00:06:16",
       "max_created": "2021-12-31 23:55:49",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "la_legacy_v1"
     },
     {
       "city": "los_angeles",
@@ -267,7 +283,8 @@
       "min_created": "2022-01-01 00:08:14",
       "max_created": "2022-12-31 23:56:24",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "la_legacy_v1"
     },
     {
       "city": "los_angeles",
@@ -282,7 +299,8 @@
       "min_created": "2023-01-01 00:00:46",
       "max_created": "2023-12-31 23:59:45",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "la_legacy_v1"
     },
     {
       "city": "los_angeles",
@@ -297,7 +315,8 @@
       "min_created": "2024-01-01 00:00:06",
       "max_created": "2024-12-31 23:59:45",
       "null_ids": 0,
-      "duplicate_ids": 0
+      "duplicate_ids": 0,
+      "schema_key": "la_legacy_v1"
     },
     {
       "city": "los_angeles",
@@ -313,7 +332,148 @@
       "max_created": "2025-12-31 12:59:54",
       "null_ids": 0,
       "duplicate_ids": 0,
-      "coverage_note": "Official LA 2025 source is partial-year: 2025-03-28 06:10:07 through 2025-12-31 12:59:54."
+      "coverage_note": "Official LA 2025 source is partial-year: 2025-03-28 06:10:07 through 2025-12-31 12:59:54.",
+      "schema_key": "la_2025_v1"
     }
-  ]
+  ],
+  "schemas": {
+    "nyc_v1": [
+      "unique_key",
+      "created_date",
+      "closed_date",
+      "agency",
+      "agency_name",
+      "complaint_type",
+      "descriptor",
+      "location_type",
+      "incident_zip",
+      "city",
+      "status",
+      "borough",
+      "latitude",
+      "longitude",
+      "open_data_channel_type"
+    ],
+    "chicago_v1": [
+      "sr_number",
+      "created_date",
+      "closed_date",
+      "status",
+      "sr_type",
+      "sr_short_code",
+      "created_department",
+      "owner_department",
+      "origin",
+      "city",
+      "zip_code",
+      "community_area",
+      "ward",
+      "latitude",
+      "longitude"
+    ],
+    "boston_csv_v1": [
+      "case_enquiry_id",
+      "open_dt",
+      "sla_target_dt",
+      "closed_dt",
+      "on_time",
+      "case_status",
+      "closure_reason",
+      "case_title",
+      "subject",
+      "reason",
+      "type",
+      "queue",
+      "department",
+      "submitted_photo",
+      "closed_photo",
+      "location",
+      "fire_district",
+      "pwd_district",
+      "city_council_district",
+      "police_district",
+      "neighborhood",
+      "neighborhood_services_district",
+      "ward",
+      "precinct",
+      "location_street_name",
+      "location_zipcode",
+      "latitude",
+      "longitude",
+      "geom_4326",
+      "source"
+    ],
+    "la_legacy_v1": [
+      "SRNumber",
+      "CreatedDate",
+      "UpdatedDate",
+      "ActionTaken",
+      "Owner",
+      "RequestType",
+      "Status",
+      "RequestSource",
+      "CreatedByUserOrganization",
+      "MobileOS",
+      "Anonymous",
+      "AssignTo",
+      "ServiceDate",
+      "ClosedDate",
+      "AddressVerified",
+      "ApproximateAddress",
+      "Address",
+      "HouseNumber",
+      "Direction",
+      "StreetName",
+      "Suffix",
+      "ZipCode",
+      "Latitude",
+      "Longitude",
+      "Location",
+      "TBMPage",
+      "TBMColumn",
+      "TBMRow",
+      "APC",
+      "CD",
+      "CDMember",
+      "NC",
+      "NCName",
+      "PolicePrecinct"
+    ],
+    "la_2025_v1": [
+      "CaseNumber",
+      "CreatedDate",
+      "UpdatedDate",
+      "ActionTaken",
+      "Owner",
+      "RequestType",
+      "Status",
+      "RequestSource",
+      "CreatedByUserOrganization",
+      "Anonymous",
+      "AssignTo",
+      "ServiceDate",
+      "ClosedDate",
+      "DateServiceRendered",
+      "ReasonCode",
+      "ResolutionCode",
+      "Address",
+      "HouseNumber",
+      "Direction",
+      "StreetName",
+      "Suffix",
+      "ZipCode",
+      "Latitude",
+      "Longitude",
+      "Location",
+      "TBMPage",
+      "TBMColumn",
+      "TBMRow",
+      "APC",
+      "CD",
+      "CDMember",
+      "NC",
+      "NCName",
+      "PolicePrecinct"
+    ]
+  }
 }
