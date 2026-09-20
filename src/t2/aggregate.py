@@ -8,8 +8,18 @@ import numpy as np
 from .provenance import validate_completed_manifest
 
 
-def privacy_transfer_penalty(private_run: Mapping[str, object], baseline_run: Mapping[str, object]) -> dict[str, float]:
+def privacy_transfer_penalty(
+    private_run: Mapping[str, object],
+    baseline_run: Mapping[str, object],
+) -> dict[str, float]:
     """PTP = external privacy cost - internal privacy cost."""
+
+    p_scope = private_run.get("external_scope")
+    b_scope = baseline_run.get("external_scope")
+    if p_scope != b_scope:
+        raise ValueError(
+            "private and baseline runs must use the same external evaluation scope"
+        )
     p_ext = float(private_run["external"]["mae_log1p_hours"])
     b_ext = float(baseline_run["external"]["mae_log1p_hours"])
     p_src = float(private_run["source_macro_mae_log1p_hours"])
