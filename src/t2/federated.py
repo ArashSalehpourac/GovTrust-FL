@@ -33,7 +33,7 @@ class ClientBundle:
 
     @property
     def n(self) -> int:
-        return int(len(self.dataset))
+        return len(self.dataset)
 
 
 def resolve_device(requested: str) -> torch.device:
