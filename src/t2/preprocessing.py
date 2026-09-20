@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.feature_extraction.text import HashingVectorizer
 
-TEXT_COL = "descriptor"
+TEXT_COL = "category"
 CAT_COLS = ["category"]
 NUM_COLS = ["hour", "day_of_week", "month", "is_weekend"]
 FORBIDDEN_PRIMARY = {
@@ -21,6 +21,7 @@ FORBIDDEN_PRIMARY = {
     "longitude_grid",
     "area",
     "zip_code",
+    "descriptor",
 }
 TEXT_HASH_DIM = 512
 CATEGORY_HASH_DIM = 64
@@ -44,7 +45,7 @@ class FixedPreprocessor:
     leak through an unprotected preprocessing fit.
     """
 
-    descriptor_hasher: HashingVectorizer
+    text_hasher: HashingVectorizer
     category_hasher: FeatureHasher
     text_hash_dim: int
     category_hash_dim: int
@@ -61,7 +62,7 @@ class FixedPreprocessor:
             raise ValueError(f"missing primary feature columns: {sorted(missing)}")
 
         descriptor = frame[TEXT_COL].fillna("").astype(str)
-        text = self.descriptor_hasher.transform(descriptor)
+        text = self.text_hasher.transform(descriptor)
 
         category_tokens = [
             [f"category={value}"]
@@ -110,7 +111,7 @@ def build_fixed_preprocessor(
     if text_hash_dim < 1 or category_hash_dim < 1:
         raise ValueError("hash dimensions must be positive")
 
-    descriptor_hasher = HashingVectorizer(
+    text_hasher = HashingVectorizer(
         n_features=text_hash_dim,
         alternate_sign=False,
         ngram_range=(1, 2),
@@ -123,7 +124,7 @@ def build_fixed_preprocessor(
         alternate_sign=False,
     )
     canonical = {
-        "representation": "data-independent hashing plus deterministic cyclical time encoding",
+        "representation": "data-independent lexical and identity hashing of intake category plus deterministic cyclical time encoding",
         "text_column": TEXT_COL,
         "text_hash_dim": text_hash_dim,
         "text_ngram_range": [1, 2],
@@ -139,7 +140,7 @@ def build_fixed_preprocessor(
         json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
     return FixedPreprocessor(
-        descriptor_hasher=descriptor_hasher,
+        text_hasher=text_hasher,
         category_hasher=category_hasher,
         text_hash_dim=text_hash_dim,
         category_hash_dim=category_hash_dim,
@@ -149,7 +150,7 @@ def build_fixed_preprocessor(
 
 def feature_manifest(preprocessor: FixedPreprocessor) -> dict[str, object]:
     return {
-        "representation": "data-independent fixed hashing",
+        "representation": "data-independent fixed hashing of intake category plus deterministic time encoding",
         "text": TEXT_COL,
         "text_hash_dim": preprocessor.text_hash_dim,
         "categorical": CAT_COLS,
@@ -158,4 +159,5 @@ def feature_manifest(preprocessor: FixedPreprocessor) -> dict[str, object]:
         "numeric_outputs": list(NUMERIC_OUTPUT_FEATURES),
         "fit_scope": "none; no data-dependent preprocessing fit",
         "explicitly_excluded_primary": sorted(FORBIDDEN_PRIMARY),
+        "descriptor_policy": "excluded from primary predictors because Los Angeles descriptor is sourced from ActionTaken, a post-service field",
     }
