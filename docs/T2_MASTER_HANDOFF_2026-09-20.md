@@ -432,3 +432,45 @@ Required before training:
 
 `SCIENTIFIC_TRAINING_STARTED=NO`
 `REAL_RESULTS_GENERATED=NO`
+
+
+## Validated scalable four-fold full-data execution redesign
+
+Validated scientific redesign SHA:
+`7dd875d06ce03b56a63e3c70c706cae453b0770b`
+
+GitHub Actions run:
+`35543297170` — SUCCESS.
+
+The validated full-data path now contains:
+
+- compact batch-wise feature construction numerically equivalent to the frozen
+  583-dimensional fixed representation;
+- no persistent full `N x 583` source matrix;
+- one-city-year-at-a-time harmonized loading with size/SHA verification;
+- source train = eligible 2021-2023 rows with close/completion before 2024;
+- source validation = eligible 2024 rows with close/completion before 2025;
+- source internal test = eligible 2025 rows;
+- held-out primary external test = eligible held-out-city 2025 rows;
+- physical target-byte loading only after source-only checkpoint selection;
+- four rotating LOCO folds;
+- primary matrix of 36 runs:
+  4 folds x 3 seeds x {nonprivate infinity, private epsilon 5, private epsilon 1};
+- 12 clipped/no-noise mechanism-ablation runs, 48 total including controls;
+- fixed-total-effective-epoch source training budget with deterministic planned
+  optimizer steps for DP calibration;
+- administrative closure/completion estimand semantics;
+- PTP aggregation guard requiring matched external evaluation scope.
+
+The full-data CLI remains deliberately fail-closed:
+`FULL_LOCO_EXECUTION_ENABLED = False`.
+
+Next required gate:
+run `scripts/t2/audit_full_design.py` on the real 20 harmonized Parquets.
+The audit must verify exact post-purge counts against the chronology audit,
+compact resident memory, zero persistent dense full-feature rows, DP step/delta
+schedule, all four folds, 36 primary/48 total conditions, and held-out
+isolation.
+
+`SCIENTIFIC_TRAINING_STARTED=NO`
+`REAL_RESULTS_GENERATED=NO`
