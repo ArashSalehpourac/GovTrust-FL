@@ -150,7 +150,6 @@ def load_source_city_bundle(
 
         del selected
         del prepared
-        del frame
 
     if not train_shards:
         raise RuntimeError(f"{city}: no training shards")
