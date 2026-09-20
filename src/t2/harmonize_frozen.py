@@ -140,6 +140,21 @@ def harmonize_chunk(frame: pd.DataFrame, city: str) -> pd.DataFrame:
 def _hash_bytes(path: Path) -> tuple[int, str]:
     return path.stat().st_size, sha256_file(path)
 
+def _validate_header(columns: list[str], entry: dict[str, object]) -> None:
+    if len(columns) != int(entry["column_count"]):
+        raise RuntimeError(
+            f"{entry['filename']}: column count mismatch "
+            f"{len(columns)} != {entry['column_count']}"
+        )
+    expected = entry.get("expected_columns")
+    if not isinstance(expected, list) or not expected:
+        raise RuntimeError(f"{entry['filename']}: frozen expected_columns missing")
+    if columns != expected:
+        raise RuntimeError(
+            f"{entry['filename']}: exact frozen header mismatch; "
+            f"observed={columns!r} expected={expected!r}"
+        )
+
 def harmonize_snapshot(
     *,
     raw_path: Path,
@@ -156,11 +171,7 @@ def harmonize_snapshot(
         raise RuntimeError(f"{raw_path.name}: SHA256 mismatch")
 
     header = pd.read_csv(raw_path, nrows=0)
-    if len(header.columns) != int(entry["column_count"]):
-        raise RuntimeError(
-            f"{raw_path.name}: column count mismatch "
-            f"{len(header.columns)} != {entry['column_count']}"
-        )
+    _validate_header(list(header.columns), entry)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = output_path.with_suffix(output_path.suffix + ".tmp")
@@ -250,15 +261,26 @@ def harmonize_all(
     raw_manifest_sha = hashlib.sha256(manifest_bytes).hexdigest()
     raw_manifest = json.loads(manifest_bytes)
     entries = raw_manifest["snapshots"]
+    schemas = raw_manifest.get("schemas")
     if len(entries) != 20:
         raise RuntimeError(f"expected 20 frozen raw snapshots, found {len(entries)}")
+    if not isinstance(schemas, dict):
+        raise RuntimeError("frozen raw manifest is missing exact schema definitions")
 
     sha, dirty = git_state()
     output_dir.mkdir(parents=True, exist_ok=True)
     results: list[dict[str, object]] = []
-    for entry in entries:
+    for raw_entry in entries:
+        entry = dict(raw_entry)
         city = str(entry["city"])
         year = int(entry["year"])
+        schema_key = str(entry.get("schema_key", ""))
+        expected_columns = schemas.get(schema_key)
+        if not isinstance(expected_columns, list) or not expected_columns:
+            raise RuntimeError(
+                f"{entry['filename']}: unknown or empty schema_key {schema_key!r}"
+            )
+        entry["expected_columns"] = expected_columns
         raw_path = raw_dir / str(entry["filename"])
         if not raw_path.is_file():
             raise FileNotFoundError(raw_path)
