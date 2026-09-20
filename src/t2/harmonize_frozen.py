@@ -270,7 +270,7 @@ def harmonize_all(
     if len(entries) != 20:
         raise RuntimeError(f"expected 20 frozen raw snapshots, found {len(entries)}")
     if not isinstance(schemas, dict):
-        raise RuntimeError("frozen raw manifest is missing exact schema definitions")
+        raise TypeError("frozen raw manifest is missing exact schema definitions")
 
     sha, dirty = git_state()
     output_dir.mkdir(parents=True, exist_ok=True)
