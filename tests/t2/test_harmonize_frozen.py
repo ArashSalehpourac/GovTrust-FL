@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.t2.harmonize_frozen import HARMONIZED_COLUMNS, harmonize_chunk
+from src.t2.harmonize_frozen import HARMONIZED_COLUMNS, _validate_header, harmonize_chunk
 
 
 def test_nyc_harmonization_is_row_preserving() -> None:
@@ -90,3 +90,14 @@ def test_chicago_owner_department_and_area_mapping() -> None:
     out = harmonize_chunk(raw, "chicago")
     assert out.loc[0, "agency"] == "CDOT"
     assert out.loc[0, "area"] == "32"
+
+
+def test_exact_frozen_header_rejects_unused_column_drift() -> None:
+    entry = {
+        "filename": "example.csv",
+        "column_count": 3,
+        "expected_columns": ["id", "created", "unused"],
+    }
+    _validate_header(["id", "created", "unused"], entry)
+    with pytest.raises(RuntimeError, match="exact frozen header mismatch"):
+        _validate_header(["id", "created", "different_unused"], entry)
