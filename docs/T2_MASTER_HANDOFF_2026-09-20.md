@@ -372,3 +372,63 @@ Retained data-quality warnings for the next gate:
 
 Next stage:
 `CHRONOLOGY_LEAKAGE_DATA_QUALITY_REVIEW`. Training remains forbidden until that gate and experiment-design review pass.
+
+
+## Chronology/leakage gate pass and full-data execution blocker
+
+Chronology/leakage/data-quality audit passed with zero blockers.
+
+- report: `T2_CHRONOLOGY_LEAKAGE_DATA_QUALITY_AUDIT.json`
+- harmonized execution SHA: `f51669502048e2d511edeead31b1c75ed2f92400`
+- analysis-audit execution SHA: `cc917e1e3a1d2b71f295c7842de4950ea1eed268`
+- source chronology: created 2021-2023 train, 2024 validation, 2025 internal test
+- purge training outcomes crossing 2024 boundary and validation outcomes crossing 2025 boundary
+- fixed preprocessing fit scope: none
+- held-out target remains physically unopened through source-only training/checkpoint selection
+- descriptor is excluded from primary predictors because LA maps it from post-service `ActionTaken`
+- explicit analysis-frame exclusions only: nonfinal status, missing/invalid close time, negative duration
+- harmonized data are never overwritten by these exclusions
+
+Manual status semantics:
+`PASS_WITH_INTERPRETATION`.
+
+Use administrative completion/closure time, not guaranteed physical service-fulfillment time.
+Recognized completion states:
+- Boston: `Closed`
+- NYC: `Closed`
+- Chicago: `Completed` plus the rare `Closed`
+- Los Angeles: `Closed`
+
+Do not treat canceled/cancelled, referred-out, duplicate-administrative, pending/open/in-progress states as resolved observations.
+
+### Experiment-design blocker before training
+
+The current final-study execution path is not authorized.
+
+`src/t2/cli.py` is still legacy Boston/LA-only and fail-closed, and
+`src/t2/federated.py` materializes full dense `N x 583` float32 feature
+tensors for every source client.
+
+Audited post-purge training rows imply feature memory alone:
+
+| city | rows | dense N×583 float32 |
+|---|---:|---:|
+| Boston | 783,095 | ~1.83 GB |
+| Chicago | 5,223,833 | ~12.18 GB |
+| Los Angeles | 3,887,364 | ~9.07 GB |
+| NYC | 9,191,768 | ~21.44 GB |
+
+Three-source fold feature tensors alone therefore require about 23.07-42.68 GB,
+before pandas, labels, loaders, Opacus per-sample gradients, model states, and
+device copies.
+
+Required before training:
+1. batch-wise/streamed deterministic hashing or an equivalent compact file-backed representation;
+2. full four-fold LOCO runner;
+3. physical delayed held-out loading;
+4. continuous per-client Opacus accounting across all private optimizer steps;
+5. provenance-complete full-data input contract;
+6. CI and execution-feasibility preflight.
+
+`SCIENTIFIC_TRAINING_STARTED=NO`
+`REAL_RESULTS_GENERATED=NO`
