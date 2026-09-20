@@ -17,9 +17,9 @@ From the existing Colab Drive mount, the authorized command is:
 
 ```bash
 python scripts/t2/harmonize_frozen_raw.py \
-  --raw-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/01_Raw_Official" \
-  --output-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized" \
-  --metadata-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums"
+  --raw-dir "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/01_Raw_Official" \
+  --output-dir "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/02_Harmonized" \
+  --metadata-dir "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/03_Manifests_and_Checksums"
 ```
 
 The command writes exactly one Parquet artifact per city-year into
@@ -31,9 +31,9 @@ After harmonization, run the deterministic data audit:
 
 ```bash
 python scripts/t2/audit_harmonized.py \
-  --harmonized-dir "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/02_Harmonized" \
-  --harmonized-manifest "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_MANIFEST.json" \
-  --report "/content/drive/MyDrive/T2-GovTrust/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_AUDIT.json"
+  --harmonized-dir "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/02_Harmonized" \
+  --harmonized-manifest "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_MANIFEST.json" \
+  --report "/content/drive/MyDrive/T2-GovTrust/T2 — Privacy × Cross-Jurisdiction Reliability Redesign/Real Datasets — 2021-2025/03_Manifests_and_Checksums/T2_HARMONIZED_AUDIT.json"
 ```
 
 **Do not run training yet.** A PASS from this structural/data audit is necessary
