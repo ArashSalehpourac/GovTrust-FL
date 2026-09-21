@@ -199,3 +199,60 @@ All four NYC/seed0 mechanism conditions are now accepted:
 - private epsilon 1
 
 The single-fold execution/mechanism gate is complete. Next step may expand to the remaining frozen matrix while preserving the exact validated execution contract.
+
+
+## NYC full-fold replication gate — PASS
+
+Corrected matrix launcher completed the eight missing NYC seed1/seed2 cells with post-run validation after every cell.
+
+Matrix state:
+- total frozen cells: 48
+- completed: 12
+- remaining: 36
+- NYC cells completed: 12/12
+- terminal gate: `NYC_FULL_FOLD_REPLICATION_GATE=PASS`
+
+New accepted run UUIDs:
+- seed1 nonprivate: `edc59fce-e941-4295-9ecf-76a964e167ed`
+- seed1 private eps5: `153e6f77-458d-400b-b9e7-db119c43a4d2`
+- seed1 private eps1: `1cd8ed56-bfa1-4137-9a1c-1eafb9868f7a`
+- seed1 clipped/no-noise: `1b8ab608-41cc-4531-a395-496bf1eb8648`
+- seed2 nonprivate: `d7cdfbf3-9e02-4777-b203-7d6473bf6612`
+- seed2 private eps5: `a40e0a09-3068-4e92-9c79-56455efeed27`
+- seed2 private eps1: `82f15271-80ab-4372-afc3-95d243d66555`
+- seed2 clipped/no-noise: `c05ab1f5-18eb-4537-ab20-806e08896011`
+
+Three-seed NYC external MAE log1p-hours, mean ± sample SD:
+- nonprivate: 2.2911042471 ± 0.0571259406
+- clipped/no-noise: 2.2241494327 ± 0.0285667274
+- private eps5: 2.2238505521 ± 0.0283259592
+- private eps1: 2.2235875260 ± 0.0281094725
+
+Three-seed NYC source-internal macro MAE log1p-hours, mean ± sample SD:
+- nonprivate: 1.5932185102 ± 0.0189253039
+- clipped/no-noise: 1.6642091948 ± 0.0105031360
+- private eps5: 1.6643814203 ± 0.0102480925
+- private eps1: 1.6645644404 ± 0.0099997377
+
+Three-seed matched effects, mean ± sample SD:
+- clipping+Poisson external effect: -0.0669548144 ± 0.0303090271
+- clipping+Poisson internal effect: +0.0709906846 ± 0.0101717997
+- clipping+Poisson PTP-like contrast: -0.1379454990 ± 0.0251985272
+- eps5 privacy cost external: -0.0672536950 ± 0.0304251655
+- eps5 privacy cost internal: +0.0711629101 ± 0.0105628595
+- eps5 PTP: -0.1384166051 ± 0.0250697429
+- eps1 privacy cost external: -0.0675167211 ± 0.0305281012
+- eps1 privacy cost internal: +0.0713459302 ± 0.0109655430
+- eps1 PTP: -0.1388626513 ± 0.0249218183
+
+Incremental DP-noise contribution beyond clipped/no-noise, mean ± sample SD:
+- eps5 external: -0.0002988806 ± 0.0003199362
+- eps5 internal: +0.0001722254 ± 0.0003911170
+- eps5 PTP increment: -0.0004711060 ± 0.0001361690
+- eps1 external: -0.0005619067 ± 0.0006165139
+- eps1 internal: +0.0003552456 ± 0.0007939853
+- eps1 PTP increment: -0.0009171523 ± 0.0003017763
+
+Interpretation remains descriptive. Across all three NYC seeds, the dominant matched change relative to standard nonprivate training is associated with clipping + Poisson sampling, while the additional DP-noise increment is much smaller. No cross-city generalization is claimed until the remaining three held-out-city folds are complete.
+
+Next scientific step: proceed to the Chicago 12-cell fold under the unchanged validated contract, using the same resume-safe fail-closed launcher pattern.
