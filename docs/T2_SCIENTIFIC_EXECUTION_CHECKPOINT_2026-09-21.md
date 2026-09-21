@@ -147,3 +147,55 @@ Run **NYC / seed 0 / clipped_no_noise** only.
 Purpose: separate clipping + Poisson-sampling effects from added DP noise before any matrix-wide expansion.
 
 Do not yet launch the remaining seeds/cities until this control is completed and independently audited.
+
+
+## Accepted run 4 — NYC held-out, seed 0, clipped/no-noise
+
+Run UUID: `86f71d1d-c961-4dfe-a453-85c07c051d12`
+
+- mode: `clipped_no_noise`
+- noise multiplier: 0.0 for every source client
+- best round: 20
+- source validation best macro MAE log1p-hours: 1.3129461203410002
+- source internal 2025 macro MAE log1p-hours: 1.6763254458416528
+- NYC 2025 external MAE log1p-hours: 2.233741010765472
+- NYC 2025 external RMSE log1p-hours: 2.662350152963778
+- NYC 2025 MAE hours: 259.4482897263494
+- NYC 2025 median AE hours: 55.56186551963236
+- NYC 2025 p90 AE hours: 327.840904842753
+- checkpoint SHA256: `6fde7a8b416cd2e2c0cfba036a42b8ed8e329fdcd21f54bcaee63c4b69ac0466`
+- execution SHA: `998a0e17b03986a7adf2edffec61d1e7e5618d96`
+- git_dirty: false
+- held-out target scope: NYC eligible 2025 only
+- preprocessor fingerprint unchanged.
+
+Per-client control accounting:
+- Boston: planned=executed=accounted 780; sample rate 0.00130718954248366; noise 0
+- Chicago: planned=executed=accounted 5120; sample rate 0.0001960015680125441; noise 0
+- Los Angeles: planned=executed=accounted 3800; sample rate 0.0002633658151171978; noise 0
+- realized epsilon is infinite by design because zero-noise clipping is not DP.
+
+Mechanism decomposition versus standard nonprivate:
+- clipping+Poisson external effect: -0.06020755080912199
+- clipping+Poisson internal effect: +0.06344220399330491
+- clipping+Poisson PTP-like contrast: -0.1236497548024269
+
+Incremental DP-noise effect beyond clipped/no-noise:
+- epsilon 5 external increment: -0.0006117680509047929
+- epsilon 5 internal increment: -0.00011195000784347542
+- epsilon 5 PTP increment: -0.0004998180430613175
+- epsilon 1 external increment: -0.0011696276437160869
+- epsilon 1 internal increment: -0.00021577059900046436
+- epsilon 1 PTP increment: -0.0009538570447156225
+
+Interpretation: for this single fold/seed, the large matched difference from standard nonprivate training is almost entirely associated with clipping + Poisson sampling, while the additional DP-noise contribution is numerically small. This is descriptive only and must not be generalized before replication across seeds and held-out cities.
+
+`CLIPPED_NO_NOISE_GATE=PASS`
+
+All four NYC/seed0 mechanism conditions are now accepted:
+- nonprivate
+- clipped_no_noise
+- private epsilon 5
+- private epsilon 1
+
+The single-fold execution/mechanism gate is complete. Next step may expand to the remaining frozen matrix while preserving the exact validated execution contract.
