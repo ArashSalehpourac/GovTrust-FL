@@ -11,11 +11,16 @@ if str(ROOT) not in sys.path:
 
 from src.t2.config import CITIES, SEEDS, T2Config, full_loco_plan
 from src.t2.full_runner import run_full_loco_one
+from src.t2.provenance import sha256_file
 
 FULL_LOCO_EXECUTION_ENABLED = True
 
 VALIDATED_DESIGN_AUDIT_SHA = (
     "7dd875d06ce03b56a63e3c70c706cae453b0770b"
+)
+VALIDATED_DESIGN_REPORT_SHA256 = (
+    "ebfdc18dbfeebd9d760868cae6e438f1"
+    "e138cc4356e5093d3cf4b1cf9fddc628"
 )
 VALIDATED_HARMONIZATION_SHA = (
     "f51669502048e2d511edeead31b1c75ed2f92400"
@@ -28,6 +33,11 @@ VALIDATED_ANALYSIS_AUDIT_SHA = (
 def _verify_design_audit(path: Path) -> dict[str, object]:
     if not path.is_file():
         raise SystemExit(f"missing validated design audit: {path}")
+    actual_report_sha256 = sha256_file(path)
+    if actual_report_sha256 != VALIDATED_DESIGN_REPORT_SHA256:
+        raise SystemExit(
+            "design audit verification failed: report_sha256"
+        )
     report = json.loads(path.read_text(encoding="utf-8"))
     checks = {
         "protocol": (
@@ -207,6 +217,9 @@ def main() -> int:
                 "design_audit_gate": design_report["gate"],
                 "design_audit_execution_sha": (
                     design_report["audit_execution_git_sha"]
+                ),
+                "design_audit_report_sha256": (
+                    VALIDATED_DESIGN_REPORT_SHA256
                 ),
                 "full_loco_execution_unlock": "PASS",
             },
