@@ -12,7 +12,74 @@ if str(ROOT) not in sys.path:
 from src.t2.config import CITIES, SEEDS, T2Config, full_loco_plan
 from src.t2.full_runner import run_full_loco_one
 
-FULL_LOCO_EXECUTION_ENABLED = False
+FULL_LOCO_EXECUTION_ENABLED = True
+
+VALIDATED_DESIGN_AUDIT_SHA = (
+    "7dd875d06ce03b56a63e3c70c706cae453b0770b"
+)
+VALIDATED_HARMONIZATION_SHA = (
+    "f51669502048e2d511edeead31b1c75ed2f92400"
+)
+VALIDATED_ANALYSIS_AUDIT_SHA = (
+    "cc917e1e3a1d2b71f295c7842de4950ea1eed268"
+)
+
+
+def _verify_design_audit(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        raise SystemExit(f"missing validated design audit: {path}")
+    report = json.loads(path.read_text(encoding="utf-8"))
+    checks = {
+        "protocol": (
+            report.get("protocol")
+            == "t2_full_data_experiment_design_audit_v1"
+        ),
+        "gate": report.get("gate") == "PASS",
+        "blockers": report.get("blockers") == [],
+        "ready": report.get("ready_to_unlock_full_loco_execution") is True,
+        "training_not_pre_authorized": (
+            report.get("training_authorized_by_this_report") is False
+        ),
+        "design_sha": (
+            report.get("audit_execution_git_sha")
+            == VALIDATED_DESIGN_AUDIT_SHA
+        ),
+        "harmonization_sha": (
+            report.get("harmonized_execution_git_sha")
+            == VALIDATED_HARMONIZATION_SHA
+        ),
+        "analysis_sha": (
+            report.get("analysis_audit_execution_git_sha")
+            == VALIDATED_ANALYSIS_AUDIT_SHA
+        ),
+        "model_input_dim": report.get("model_input_dim") == 583,
+        "primary_runs": (
+            dict(report.get("matrix", {})).get("primary_runs") == 36
+        ),
+        "total_runs": (
+            dict(report.get("matrix", {})).get("total_with_ablation") == 48
+        ),
+        "heldout_isolation": (
+            dict(report.get("heldout_isolation", {})).get(
+                "target_bytes_opened_before_source_selection"
+            )
+            is False
+            and dict(report.get("heldout_isolation", {})).get(
+                "target_2025_loaded_only_after_selected_checkpoint"
+            )
+            is True
+            and dict(report.get("heldout_isolation", {})).get(
+                "target_used_for_tuning_or_privacy_accounting"
+            )
+            is False
+        ),
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    if failed:
+        raise SystemExit(
+            "design audit verification failed: " + ", ".join(failed)
+        )
+    return report
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -25,6 +92,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--harmonized-dir", required=True)
     parser.add_argument("--harmonized-manifest", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument(
+        "--design-audit",
+        help=(
+            "path to validated T2_FULLDATA_EXPERIMENT_DESIGN_AUDIT.json; "
+            "required with --execute"
+        ),
+    )
     parser.add_argument("--heldout", choices=CITIES, required=True)
     parser.add_argument(
         "--mode",
@@ -118,10 +192,27 @@ def main() -> int:
         return 0
 
     if not FULL_LOCO_EXECUTION_ENABLED:
+        raise SystemExit("Full-data LOCO execution is disabled.")
+
+    if not args.design_audit:
         raise SystemExit(
-            "Full-data LOCO execution remains fail-closed until the "
-            "experiment-design/feasibility gate is explicitly passed."
+            "--design-audit is required with --execute"
         )
+    design_report = _verify_design_audit(
+        Path(args.design_audit).expanduser().resolve()
+    )
+    print(
+        json.dumps(
+            {
+                "design_audit_gate": design_report["gate"],
+                "design_audit_execution_sha": (
+                    design_report["audit_execution_git_sha"]
+                ),
+                "full_loco_execution_unlock": "PASS",
+            },
+            indent=2,
+        )
+    )
 
     run_full_loco_one(
         harmonized_dir=Path(args.harmonized_dir).expanduser().resolve(),
