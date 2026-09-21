@@ -522,3 +522,25 @@ the unlock commit passes CI.
 
 `SCIENTIFIC_TRAINING_STARTED=NO`
 `REAL_RESULTS_GENERATED=NO`
+
+
+## Scientific execution checkpoint — 2026-09-21
+
+Authoritative execution-state snapshot:
+`docs/T2_SCIENTIFIC_EXECUTION_CHECKPOINT_2026-09-21.md`
+
+Checkpoint commit:
+`433a1be674c876aff559c02383b5257e4f898db9`
+
+Drive mirror:
+`T2-GovTrust — Scientific Execution Checkpoint — 2026-09-21`
+Document ID: `11MknM21eziIM26LDX8t-MB056lMKU61CueZp-dVDtvw`
+
+State frozen in that checkpoint:
+- accepted NYC seed0 nonprivate run
+- accepted NYC seed0 private epsilon=5 run
+- accepted NYC seed0 private epsilon=1 retry
+- failed pre-training epsilon=1 import attempt preserved
+- exact run UUIDs, checkpoint hashes, DP accountant values, metrics, privacy-cost/PTP values
+- next authorized step: NYC seed0 clipped_no_noise only
+- no matrix-wide expansion yet
