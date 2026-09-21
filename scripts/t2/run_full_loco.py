@@ -227,15 +227,49 @@ def main() -> int:
         )
     )
 
-    run_full_loco_one(
+    resolved_output_dir = Path(args.output_dir).expanduser().resolve()
+    run = run_full_loco_one(
         harmonized_dir=Path(args.harmonized_dir).expanduser().resolve(),
         harmonized_manifest_path=Path(
             args.harmonized_manifest
         ).expanduser().resolve(),
         held_out_city=args.heldout,
         config=config,
-        output_dir=Path(args.output_dir).expanduser().resolve(),
+        output_dir=resolved_output_dir,
         command=" ".join(sys.argv),
+    )
+    run_dir = resolved_output_dir / str(run["manifest"]["run_uuid"])
+    print(
+        json.dumps(
+            {
+                "status": "completed",
+                "run_uuid": run["manifest"]["run_uuid"],
+                "held_out_city": run["held_out_city"],
+                "source_cities": run["source_cities"],
+                "seed": run["seed"],
+                "mode": run["mode"],
+                "target_epsilon": (
+                    "inf"
+                    if run["target_epsilon"] == float("inf")
+                    else run["target_epsilon"]
+                ),
+                "best_round": run["selection"]["best_round"],
+                "source_macro_mae_log1p_hours": (
+                    run["source_macro_mae_log1p_hours"]
+                ),
+                "external_mae_log1p_hours": (
+                    run["external"]["mae_log1p_hours"]
+                ),
+                "fold_realized_epsilon_max_client": (
+                    "inf"
+                    if run["fold_realized_epsilon_max_client"]
+                    == float("inf")
+                    else run["fold_realized_epsilon_max_client"]
+                ),
+                "output_dir": str(run_dir),
+            },
+            indent=2,
+        )
     )
     return 0
 
