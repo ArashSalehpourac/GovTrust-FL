@@ -474,3 +474,51 @@ isolation.
 
 `SCIENTIFIC_TRAINING_STARTED=NO`
 `REAL_RESULTS_GENERATED=NO`
+
+
+## Real-data experiment-design feasibility gate PASS
+
+Saved Drive report:
+`T2_FULLDATA_EXPERIMENT_DESIGN_AUDIT.json`
+
+Drive ID:
+`1m-gxAVrC2cHNJHBQONcHMjGCHHfO4-mX`
+
+Report SHA256:
+`ebfdc18dbfeebd9d760868cae6e438f1e138cc4356e5093d3cf4b1cf9fddc628`
+
+Independent verification:
+- protocol `t2_full_data_experiment_design_audit_v1`
+- gate `PASS`
+- blockers `0`
+- audit execution SHA `7dd875d06ce03b56a63e3c70c706cae453b0770b`
+- harmonized execution SHA `f51669502048e2d511edeead31b1c75ed2f92400`
+- analysis-audit SHA `cc917e1e3a1d2b71f295c7842de4950ea1eed268`
+- model input dimension 583
+- 36 primary runs, 12 clipped/no-noise ablations, 48 total
+- all four held-out cities and seeds 0/1/2
+- held-out target 2025 loaded only after source checkpoint selection
+- target excluded from tuning and privacy accounting
+- continuous per-client Opacus RDP accounting
+- delta strictly below 1/N
+- fixed-total-effective-epoch budget, target 1.0 effective epoch over 20 rounds
+- logical batch size 1024
+
+Real compact memory:
+- NYC: ~0.5995 GiB all splits
+- Chicago: ~0.3328 GiB
+- Boston: ~0.0465 GiB
+- Los Angeles: ~0.2477 GiB
+- maximum three-source fold: ~1.1800 GiB
+- persistent dense full-feature rows: 0
+
+Gate transition:
+`EXPERIMENT_DESIGN_GATE=PASS`
+`FULL_LOCO_EXECUTION_UNLOCK_READY=YES`
+
+The training launcher is being unlocked only behind exact verification of the
+saved report hash and its provenance/gate fields. Training remains off until
+the unlock commit passes CI.
+
+`SCIENTIFIC_TRAINING_STARTED=NO`
+`REAL_RESULTS_GENERATED=NO`
