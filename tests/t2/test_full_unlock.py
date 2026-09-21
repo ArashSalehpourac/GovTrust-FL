@@ -48,6 +48,7 @@ def test_validated_design_report_unlocks_execution(tmp_path):
     module = _load_script()
     path = tmp_path / "design.json"
     path.write_text(json.dumps(_report(module)), encoding="utf-8")
+    module.VALIDATED_DESIGN_REPORT_SHA256 = module.sha256_file(path)
     verified = module._verify_design_audit(path)
     assert verified["gate"] == "PASS"
 
@@ -58,6 +59,7 @@ def test_mismatched_design_sha_fails_closed(tmp_path):
     report["audit_execution_git_sha"] = "bad"
     path = tmp_path / "design.json"
     path.write_text(json.dumps(report), encoding="utf-8")
+    module.VALIDATED_DESIGN_REPORT_SHA256 = module.sha256_file(path)
     with pytest.raises(SystemExit, match="design_sha"):
         module._verify_design_audit(path)
 
@@ -88,3 +90,12 @@ def test_execute_requires_design_audit(tmp_path):
             module.main()
     finally:
         module.sys.argv = old_argv
+
+
+def test_modified_report_bytes_fail_closed(tmp_path):
+    module = _load_script()
+    path = tmp_path / "design.json"
+    path.write_text(json.dumps(_report(module)), encoding="utf-8")
+    module.VALIDATED_DESIGN_REPORT_SHA256 = "0" * 64
+    with pytest.raises(SystemExit, match="report_sha256"):
+        module._verify_design_audit(path)
