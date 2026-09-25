@@ -544,3 +544,21 @@ State frozen in that checkpoint:
 - exact run UUIDs, checkpoint hashes, DP accountant values, metrics, privacy-cost/PTP values
 - next authorized step: NYC seed0 clipped_no_noise only
 - no matrix-wide expansion yet
+
+
+## VM continuation checkpoint — 2026-09-25
+
+Authoritative continuation state is recorded in:
+`docs/T2_VM_CONTINUATION_CHECKPOINT_2026-09-25.md`
+
+Checkpoint commit: `514c92ac35945e25feb3bb93150d396106b52204`
+
+Operational state:
+- accepted matrix: **15/48**
+- remaining: **33**
+- NYC: 12/12 accepted
+- Chicago seed0: nonprivate, eps5, eps1 accepted
+- Chicago seed0 clipped/no-noise: interrupted Colab attempt, not counted
+- next key: `chicago|seed=0|clipped_no_noise|eps=inf`
+- next execution environment: persistent CUDA GPU VM
+- scientific contract changed: NO
