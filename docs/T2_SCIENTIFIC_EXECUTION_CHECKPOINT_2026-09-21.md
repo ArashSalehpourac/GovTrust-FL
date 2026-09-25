@@ -1,0 +1,258 @@
+# T2-GovTrust — Scientific Execution Checkpoint — 2026-09-21
+
+## Frozen paper identity
+
+**Privacy Under Institutional Shift: Cross-Jurisdiction Reliability of Federated Learning for Municipal Service-Request Resolution**
+
+Primary estimand interpretation remains **administrative closure/completion duration conditional on observed completion**, not guaranteed physical service fulfillment.
+
+## Validated scientific execution contract
+
+- Scientific execution SHA: `998a0e17b03986a7adf2edffec61d1e7e5618d96`
+- Experiment-design audit SHA: `7dd875d06ce03b56a63e3c70c706cae453b0770b`
+- Harmonization SHA: `f51669502048e2d511edeead31b1c75ed2f92400`
+- Chronology/leakage audit SHA: `cc917e1e3a1d2b71f295c7842de4950ea1eed268`
+- Design report SHA256: `ebfdc18dbfeebd9d760868cae6e438f1e138cc4356e5093d3cf4b1cf9fddc628`
+- Preprocessor fingerprint: `ab286be51a209e1e2cb91913cc40adae184a4c270b7491fff37eedffc6246dac`
+- Model input dimension: 583
+- Rounds: 20
+- Logical batch size: 1024
+- Training budget: fixed total effective epochs
+- Target total effective epochs: 1.0
+- External primary evaluation: held-out city, year 2025 only
+- Matrix: 36 primary runs + 12 clipped/no-noise ablations = 48 total
+
+## Gate state
+
+- HARMONIZATION_GATE=PASS
+- CHRONOLOGY_LEAKAGE_DATA_QUALITY_GATE=PASS
+- STATUS_SEMANTICS_GATE=PASS_WITH_INTERPRETATION
+- EXPERIMENT_DESIGN_GATE=PASS
+- FULL_LOCO_EXECUTION_UNLOCK=PASS
+- FIRST_NONPRIVATE_BASELINE_GATE=PASS
+- PRIVATE_EPS5_RUN_GATE=PASS
+- PRIVATE_EPS1_RUN_GATE=PASS
+- PRIVACY_ACCOUNTING_GATE=PASS
+
+Scientific training has started and real results have been generated.
+
+## Accepted run 1 — NYC held-out, seed 0, nonprivate
+
+Run UUID: `fdea59ec-7888-4ff3-bd9e-cead627f8034`
+
+- mode: nonprivate
+- epsilon: infinity
+- best round: 20
+- source validation best macro MAE log1p-hours: 1.23305896315119
+- source internal 2025 macro MAE log1p-hours: 1.6128832418483479
+- NYC 2025 external MAE log1p-hours: 2.293948561574594
+- NYC 2025 external RMSE log1p-hours: 2.6567688126124005
+- NYC 2025 MAE hours: 271.8240779241973
+- NYC 2025 median AE hours: 57.221864955542486
+- NYC 2025 p90 AE hours: 512.3466671144106
+- checkpoint SHA256: `1da59f5dcc3a5b60757626c3c6072bf86cc237a57adb96f48dd34613dabe1e76`
+
+A post-run reporting-only KeyError requested the nonexistent key `median_ae_log1p_hours`; the scientific run had already completed and all artifacts were durably saved. Do not rerun this baseline.
+
+## Accepted run 2 — NYC held-out, seed 0, private epsilon 5
+
+Run UUID: `e7683b11-6962-44b8-a6d3-55eb164c6247`
+
+- best round: 20
+- source validation best macro MAE log1p-hours: 1.3128068883834991
+- source internal 2025 macro MAE log1p-hours: 1.6762134958338093
+- NYC 2025 external MAE log1p-hours: 2.233129242714567
+- NYC 2025 external RMSE log1p-hours: 2.661424904811585
+- NYC 2025 MAE hours: 259.3359973184775
+- NYC 2025 median AE hours: 55.528273269359126
+- NYC 2025 p90 AE hours: 327.90844779130157
+- checkpoint SHA256: `5195e85383e177f6b8944e9f235ae561ea714a947c3dca5c3e0ec8adacb7f0e1`
+
+Per-client DP accounting:
+- Boston: epsilon 4.995833410161681; noise 0.54901123046875; planned=executed=accounted steps 780
+- Chicago: epsilon 4.9937346273891725; noise 0.50262451171875; planned=executed=accounted steps 5120
+- Los Angeles: epsilon 4.997480635399884; noise 0.5084228515625; planned=executed=accounted steps 3800
+- Fold epsilon = max client epsilon = 4.997480635399884
+- All delta values are strictly below 1/N.
+- `secure_rng=false` is explicitly documented as a research-experiment setting, not a production cryptographic deployment claim.
+
+Matched against nonprivate:
+- external privacy cost: -0.06081931886002678
+- internal privacy cost: +0.06333025398546144
+- PTP: -0.12414957284548822
+
+Single-fold/single-seed descriptive only.
+
+## Accepted run 3 — NYC held-out, seed 0, private epsilon 1
+
+Initial attempt failed **before training** because Opacus was not installed. Failed log is preserved as:
+`REAL_RUN_NYC_SEED0_PRIVATE_EPS1.log`
+
+Successful retry run UUID:
+`28c5abb4-067e-4f46-b336-c2c358c5c266`
+
+Retry environment:
+- Opacus 1.6.0
+- torch 2.11.0+cu128
+- CUDA active on NVIDIA A100-SXM4-80GB
+- exact design-audit hash matched
+- exact execution SHA matched
+
+Performance:
+- best round: 20
+- source validation best macro MAE log1p-hours: 1.3126809538076287
+- source internal 2025 macro MAE log1p-hours: 1.6761096752426523
+- NYC 2025 external MAE log1p-hours: 2.2325713831217557
+- NYC 2025 external RMSE log1p-hours: 2.66056383764581
+- NYC 2025 MAE hours: 259.2304880114976
+- NYC 2025 median AE hours: 55.50574312072261
+- NYC 2025 p90 AE hours: 327.9191945195259
+- checkpoint SHA256: `10880de0685456549834288418d8005bad9b196bc16718603628a791dc5f5cec`
+
+Per-client DP accounting:
+- Boston: epsilon 0.9966398141937871; noise 1.031494140625; planned=executed=accounted steps 780
+- Chicago: epsilon 0.995837560421344; noise 0.9686279296875; planned=executed=accounted steps 5120
+- Los Angeles: epsilon 0.9931173023325692; noise 0.966796875; planned=executed=accounted steps 3800
+- Fold epsilon = max client epsilon = 0.9966398141937871
+- All target-within-tolerance checks passed.
+- All delta values are strictly below 1/N.
+
+Matched against nonprivate:
+- external privacy cost: -0.06137717845283808
+- internal privacy cost: +0.06322643339430445
+- PTP: -0.12460361184714253
+
+Single-fold/single-seed descriptive only.
+
+## Current Drive execution folder
+
+`04_Full_LOCO_Runs`
+Drive folder ID: `1wucXTCWdDwx2pyPHm9kXOmTT2sLkaTdP`
+
+Accepted run directories:
+- `fdea59ec-7888-4ff3-bd9e-cead627f8034`
+- `e7683b11-6962-44b8-a6d3-55eb164c6247`
+- `28c5abb4-067e-4f46-b336-c2c358c5c266`
+
+Preserved logs:
+- `FIRST_REAL_RUN_NYC_SEED0_NONPRIVATE.log`
+- `REAL_RUN_NYC_SEED0_PRIVATE_EPS5.log`
+- `REAL_RUN_NYC_SEED0_PRIVATE_EPS1.log` — failed before training
+- `REAL_RUN_NYC_SEED0_PRIVATE_EPS1_RETRY1.log` — successful retry
+
+## Next authorized scientific step
+
+Run **NYC / seed 0 / clipped_no_noise** only.
+
+Purpose: separate clipping + Poisson-sampling effects from added DP noise before any matrix-wide expansion.
+
+Do not yet launch the remaining seeds/cities until this control is completed and independently audited.
+
+
+## Accepted run 4 — NYC held-out, seed 0, clipped/no-noise
+
+Run UUID: `86f71d1d-c961-4dfe-a453-85c07c051d12`
+
+- mode: `clipped_no_noise`
+- noise multiplier: 0.0 for every source client
+- best round: 20
+- source validation best macro MAE log1p-hours: 1.3129461203410002
+- source internal 2025 macro MAE log1p-hours: 1.6763254458416528
+- NYC 2025 external MAE log1p-hours: 2.233741010765472
+- NYC 2025 external RMSE log1p-hours: 2.662350152963778
+- NYC 2025 MAE hours: 259.4482897263494
+- NYC 2025 median AE hours: 55.56186551963236
+- NYC 2025 p90 AE hours: 327.840904842753
+- checkpoint SHA256: `6fde7a8b416cd2e2c0cfba036a42b8ed8e329fdcd21f54bcaee63c4b69ac0466`
+- execution SHA: `998a0e17b03986a7adf2edffec61d1e7e5618d96`
+- git_dirty: false
+- held-out target scope: NYC eligible 2025 only
+- preprocessor fingerprint unchanged.
+
+Per-client control accounting:
+- Boston: planned=executed=accounted 780; sample rate 0.00130718954248366; noise 0
+- Chicago: planned=executed=accounted 5120; sample rate 0.0001960015680125441; noise 0
+- Los Angeles: planned=executed=accounted 3800; sample rate 0.0002633658151171978; noise 0
+- realized epsilon is infinite by design because zero-noise clipping is not DP.
+
+Mechanism decomposition versus standard nonprivate:
+- clipping+Poisson external effect: -0.06020755080912199
+- clipping+Poisson internal effect: +0.06344220399330491
+- clipping+Poisson PTP-like contrast: -0.1236497548024269
+
+Incremental DP-noise effect beyond clipped/no-noise:
+- epsilon 5 external increment: -0.0006117680509047929
+- epsilon 5 internal increment: -0.00011195000784347542
+- epsilon 5 PTP increment: -0.0004998180430613175
+- epsilon 1 external increment: -0.0011696276437160869
+- epsilon 1 internal increment: -0.00021577059900046436
+- epsilon 1 PTP increment: -0.0009538570447156225
+
+Interpretation: for this single fold/seed, the large matched difference from standard nonprivate training is almost entirely associated with clipping + Poisson sampling, while the additional DP-noise contribution is numerically small. This is descriptive only and must not be generalized before replication across seeds and held-out cities.
+
+`CLIPPED_NO_NOISE_GATE=PASS`
+
+All four NYC/seed0 mechanism conditions are now accepted:
+- nonprivate
+- clipped_no_noise
+- private epsilon 5
+- private epsilon 1
+
+The single-fold execution/mechanism gate is complete. Next step may expand to the remaining frozen matrix while preserving the exact validated execution contract.
+
+
+## NYC full-fold replication gate — PASS
+
+Corrected matrix launcher completed the eight missing NYC seed1/seed2 cells with post-run validation after every cell.
+
+Matrix state:
+- total frozen cells: 48
+- completed: 12
+- remaining: 36
+- NYC cells completed: 12/12
+- terminal gate: `NYC_FULL_FOLD_REPLICATION_GATE=PASS`
+
+New accepted run UUIDs:
+- seed1 nonprivate: `edc59fce-e941-4295-9ecf-76a964e167ed`
+- seed1 private eps5: `153e6f77-458d-400b-b9e7-db119c43a4d2`
+- seed1 private eps1: `1cd8ed56-bfa1-4137-9a1c-1eafb9868f7a`
+- seed1 clipped/no-noise: `1b8ab608-41cc-4531-a395-496bf1eb8648`
+- seed2 nonprivate: `d7cdfbf3-9e02-4777-b203-7d6473bf6612`
+- seed2 private eps5: `a40e0a09-3068-4e92-9c79-56455efeed27`
+- seed2 private eps1: `82f15271-80ab-4372-afc3-95d243d66555`
+- seed2 clipped/no-noise: `c05ab1f5-18eb-4537-ab20-806e08896011`
+
+Three-seed NYC external MAE log1p-hours, mean ± sample SD:
+- nonprivate: 2.2911042471 ± 0.0571259406
+- clipped/no-noise: 2.2241494327 ± 0.0285667274
+- private eps5: 2.2238505521 ± 0.0283259592
+- private eps1: 2.2235875260 ± 0.0281094725
+
+Three-seed NYC source-internal macro MAE log1p-hours, mean ± sample SD:
+- nonprivate: 1.5932185102 ± 0.0189253039
+- clipped/no-noise: 1.6642091948 ± 0.0105031360
+- private eps5: 1.6643814203 ± 0.0102480925
+- private eps1: 1.6645644404 ± 0.0099997377
+
+Three-seed matched effects, mean ± sample SD:
+- clipping+Poisson external effect: -0.0669548144 ± 0.0303090271
+- clipping+Poisson internal effect: +0.0709906846 ± 0.0101717997
+- clipping+Poisson PTP-like contrast: -0.1379454990 ± 0.0251985272
+- eps5 privacy cost external: -0.0672536950 ± 0.0304251655
+- eps5 privacy cost internal: +0.0711629101 ± 0.0105628595
+- eps5 PTP: -0.1384166051 ± 0.0250697429
+- eps1 privacy cost external: -0.0675167211 ± 0.0305281012
+- eps1 privacy cost internal: +0.0713459302 ± 0.0109655430
+- eps1 PTP: -0.1388626513 ± 0.0249218183
+
+Incremental DP-noise contribution beyond clipped/no-noise, mean ± sample SD:
+- eps5 external: -0.0002988806 ± 0.0003199362
+- eps5 internal: +0.0001722254 ± 0.0003911170
+- eps5 PTP increment: -0.0004711060 ± 0.0001361690
+- eps1 external: -0.0005619067 ± 0.0006165139
+- eps1 internal: +0.0003552456 ± 0.0007939853
+- eps1 PTP increment: -0.0009171523 ± 0.0003017763
+
+Interpretation remains descriptive. Across all three NYC seeds, the dominant matched change relative to standard nonprivate training is associated with clipping + Poisson sampling, while the additional DP-noise increment is much smaller. No cross-city generalization is claimed until the remaining three held-out-city folds are complete.
+
+Next scientific step: proceed to the Chicago 12-cell fold under the unchanged validated contract, using the same resume-safe fail-closed launcher pattern.

@@ -1,0 +1,278 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.t2.config import CITIES, SEEDS, T2Config, full_loco_plan
+from src.t2.full_runner import run_full_loco_one
+from src.t2.provenance import sha256_file
+
+FULL_LOCO_EXECUTION_ENABLED = True
+
+VALIDATED_DESIGN_AUDIT_SHA = (
+    "7dd875d06ce03b56a63e3c70c706cae453b0770b"
+)
+VALIDATED_DESIGN_REPORT_SHA256 = (
+    "ebfdc18dbfeebd9d760868cae6e438f1"
+    "e138cc4356e5093d3cf4b1cf9fddc628"
+)
+VALIDATED_HARMONIZATION_SHA = (
+    "f51669502048e2d511edeead31b1c75ed2f92400"
+)
+VALIDATED_ANALYSIS_AUDIT_SHA = (
+    "cc917e1e3a1d2b71f295c7842de4950ea1eed268"
+)
+
+
+def _verify_design_audit(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        raise SystemExit(f"missing validated design audit: {path}")
+    actual_report_sha256 = sha256_file(path)
+    if actual_report_sha256 != VALIDATED_DESIGN_REPORT_SHA256:
+        raise SystemExit(
+            "design audit verification failed: report_sha256"
+        )
+    report = json.loads(path.read_text(encoding="utf-8"))
+    checks = {
+        "protocol": (
+            report.get("protocol")
+            == "t2_full_data_experiment_design_audit_v1"
+        ),
+        "gate": report.get("gate") == "PASS",
+        "blockers": report.get("blockers") == [],
+        "ready": report.get("ready_to_unlock_full_loco_execution") is True,
+        "training_not_pre_authorized": (
+            report.get("training_authorized_by_this_report") is False
+        ),
+        "design_sha": (
+            report.get("audit_execution_git_sha")
+            == VALIDATED_DESIGN_AUDIT_SHA
+        ),
+        "harmonization_sha": (
+            report.get("harmonized_execution_git_sha")
+            == VALIDATED_HARMONIZATION_SHA
+        ),
+        "analysis_sha": (
+            report.get("analysis_audit_execution_git_sha")
+            == VALIDATED_ANALYSIS_AUDIT_SHA
+        ),
+        "model_input_dim": report.get("model_input_dim") == 583,
+        "primary_runs": (
+            dict(report.get("matrix", {})).get("primary_runs") == 36
+        ),
+        "total_runs": (
+            dict(report.get("matrix", {})).get("total_with_ablation") == 48
+        ),
+        "heldout_isolation": (
+            dict(report.get("heldout_isolation", {})).get(
+                "target_bytes_opened_before_source_selection"
+            )
+            is False
+            and dict(report.get("heldout_isolation", {})).get(
+                "target_2025_loaded_only_after_selected_checkpoint"
+            )
+            is True
+            and dict(report.get("heldout_isolation", {})).get(
+                "target_used_for_tuning_or_privacy_accounting"
+            )
+            is False
+        ),
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    if failed:
+        raise SystemExit(
+            "design audit verification failed: " + ", ".join(failed)
+        )
+    return report
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Preview or run one full-data four-fold T2 LOCO configuration. "
+            "Execution remains fail-closed until the experiment-design gate passes."
+        )
+    )
+    parser.add_argument("--harmonized-dir", required=True)
+    parser.add_argument("--harmonized-manifest", required=True)
+    parser.add_argument("--output-dir", required=True)
+    parser.add_argument(
+        "--design-audit",
+        help=(
+            "path to validated T2_FULLDATA_EXPERIMENT_DESIGN_AUDIT.json; "
+            "required with --execute"
+        ),
+    )
+    parser.add_argument("--heldout", choices=CITIES, required=True)
+    parser.add_argument(
+        "--mode",
+        choices=["nonprivate", "private", "clipped_no_noise"],
+        required=True,
+    )
+    parser.add_argument("--epsilon", default="inf")
+    parser.add_argument("--seed", type=int, choices=SEEDS, required=True)
+    parser.add_argument("--rounds", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=1024)
+    parser.add_argument("--learning-rate", type=float, default=0.02)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
+    parser.add_argument("--patience", type=int, default=5)
+    parser.add_argument("--epsilon-tolerance", type=float, default=0.05)
+    parser.add_argument("--total-effective-epochs", type=float, default=1.0)
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--execute", action="store_true")
+    parser.add_argument(
+        "--print-matrix",
+        action="store_true",
+        help="print the frozen four-fold matrix and exit",
+    )
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    if args.print_matrix:
+        print(
+            json.dumps(
+                full_loco_plan(),
+                indent=2,
+                default=lambda value: (
+                    "inf" if value == float("inf") else value
+                ),
+            )
+        )
+        return 0
+
+    epsilon = (
+        float(args.epsilon)
+        if args.mode == "private"
+        else float("inf")
+    )
+    if args.mode == "private" and epsilon not in {1.0, 5.0}:
+        raise SystemExit("full T2 matrix permits private epsilon 1 or 5")
+    if args.mode != "private" and args.epsilon.lower() not in {
+        "inf",
+        "infinity",
+    }:
+        raise SystemExit("non-private controls require epsilon infinity")
+
+    config = T2Config(
+        mode=args.mode,
+        target_epsilon=epsilon,
+        rounds=args.rounds,
+        local_epochs=1,
+        training_budget="fixed_total_effective_epochs",
+        total_effective_epochs=args.total_effective_epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        seed=args.seed,
+        max_grad_norm=args.max_grad_norm,
+        checkpoint_patience=args.patience,
+        stop_on_patience=False,
+        epsilon_tolerance=args.epsilon_tolerance,
+        device=args.device,
+    )
+    config.validate()
+
+    preview = {
+        "held_out_city": args.heldout,
+        "source_cities": [city for city in CITIES if city != args.heldout],
+        "mode": args.mode,
+        "target_epsilon": (
+            "inf" if epsilon == float("inf") else epsilon
+        ),
+        "seed": args.seed,
+        "rounds": args.rounds,
+        "training_budget": config.training_budget,
+        "total_effective_epochs": config.total_effective_epochs,
+        "batch_size": config.batch_size,
+        "external_primary_year": 2025,
+        "execution_enabled": FULL_LOCO_EXECUTION_ENABLED,
+    }
+    print(json.dumps(preview, indent=2))
+
+    if not args.execute:
+        print("No training started.")
+        return 0
+
+    if not FULL_LOCO_EXECUTION_ENABLED:
+        raise SystemExit("Full-data LOCO execution is disabled.")
+
+    if not args.design_audit:
+        raise SystemExit(
+            "--design-audit is required with --execute"
+        )
+    design_report = _verify_design_audit(
+        Path(args.design_audit).expanduser().resolve()
+    )
+    print(
+        json.dumps(
+            {
+                "design_audit_gate": design_report["gate"],
+                "design_audit_execution_sha": (
+                    design_report["audit_execution_git_sha"]
+                ),
+                "design_audit_report_sha256": (
+                    VALIDATED_DESIGN_REPORT_SHA256
+                ),
+                "full_loco_execution_unlock": "PASS",
+            },
+            indent=2,
+        )
+    )
+
+    resolved_output_dir = Path(args.output_dir).expanduser().resolve()
+    run = run_full_loco_one(
+        harmonized_dir=Path(args.harmonized_dir).expanduser().resolve(),
+        harmonized_manifest_path=Path(
+            args.harmonized_manifest
+        ).expanduser().resolve(),
+        held_out_city=args.heldout,
+        config=config,
+        output_dir=resolved_output_dir,
+        command=" ".join(sys.argv),
+    )
+    run_dir = resolved_output_dir / str(run["manifest"]["run_uuid"])
+    print(
+        json.dumps(
+            {
+                "status": "completed",
+                "run_uuid": run["manifest"]["run_uuid"],
+                "held_out_city": run["held_out_city"],
+                "source_cities": run["source_cities"],
+                "seed": run["seed"],
+                "mode": run["mode"],
+                "target_epsilon": (
+                    "inf"
+                    if run["target_epsilon"] == float("inf")
+                    else run["target_epsilon"]
+                ),
+                "best_round": run["selection"]["best_round"],
+                "source_macro_mae_log1p_hours": (
+                    run["source_macro_mae_log1p_hours"]
+                ),
+                "external_mae_log1p_hours": (
+                    run["external"]["mae_log1p_hours"]
+                ),
+                "fold_realized_epsilon_max_client": (
+                    "inf"
+                    if run["fold_realized_epsilon_max_client"]
+                    == float("inf")
+                    else run["fold_realized_epsilon_max_client"]
+                ),
+                "output_dir": str(run_dir),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
